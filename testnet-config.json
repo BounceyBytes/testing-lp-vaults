@@ -24,7 +24,9 @@
   "network_info": {
     "name": "Dukong Testnet",
     "explorer": "https://explorer.dukong.io",
-    "chainId": "TBD"
+    "chainId": 5887,
+    "rpcUrl": "https://rpc.dukong.mantrachain.io",
+    "currency": "OM"
   },
   "dapp": {
     "url": "https://mantra-lst-frontend.vercel.app/vault",
