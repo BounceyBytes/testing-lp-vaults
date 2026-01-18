@@ -1,344 +1,108 @@
-# Quickswap Testnet Trading Bot
+# Quickswap Testnet Bot
 
-A sophisticated trading bot designed to test CLM (Concentrated Liquidity Market) vault rebalancing on Quickswap's Mantrachain testnet deployment.
+Trading + monitoring utilities for **testing CLM (concentrated liquidity) vault rebalancing** on Quickswap/Algebra on the **Mantra Dukong testnet**.
 
-## 🎯 Purpose
+## What’s built
 
-This bot helps test CLM vault rebalancing by:
-- Creating price volatility in liquidity pools
-- Executing directional price movements (pumps)
-- Monitoring pool state changes in real-time
-- Providing detailed logging and statistics
+- **Quickswap/Algebra client** (`src/contracts/QuickswapClient.ts`)
+  - Reads pool state (`globalState`, tick, liquidity, token metadata)
+  - Gets swap quotes via **QuoterV2**
+  - Executes swaps via **SwapRouter** (with ERC20 approvals)
+- **Trading bot runner** (`src/bot/TradingBot.ts`)
+  - Strategy orchestration + balance logging + before/after pool snapshots
+  - Supported strategies:
+    - `volatility` (alternate directions)
+    - `pump_token0` / `pump_token1` (one-way sequences)
+    - `single_swap`
+    - `continuous` (runs until Ctrl+C)
+    - `target_impact` (swap until impact target reached)
+- **Pool monitor** (`src/utils/PoolMonitor.ts`)
+  - Poll-based monitoring with snapshots + end-of-run stats (min/max, change %, volatility)
+- **Example scripts** (`src/examples/`)
+  - `monitor-example.ts` (monitor only)
+  - `single-trade.ts` (one large swap)
+  - `custom-strategy.ts` (multi-phase scenario)
+  - `list-pools.ts` (scan factory logs for created pools; optionally enrich with token symbols)
+- **Logging**
+  - Console + `bot-activity.log` + `bot-error.log`
 
-## 🏗️ Architecture
+## How to use
 
-The bot is built with TypeScript and ethers.js v6, featuring:
+### Prereqs
 
-- **QuickswapClient**: Core client for interacting with Quickswap/Algebra contracts
-- **PriceManipulator**: Advanced strategies for price manipulation
-- **TradingBot**: Main orchestrator with multiple trading strategies
-- **PoolMonitor**: Real-time pool monitoring and statistics
+- Node.js **18+**
+- A **dedicated testnet wallet** funded with:
+  - **OM** (gas)
+  - The **pool tokens** you plan to trade
 
-## 📋 Prerequisites
-
-- Node.js v18 or higher
-- npm or yarn
-- A wallet with testnet OM tokens (MANTRA testnet)
-- Testnet tokens for the pools you want to trade
-
-## 🚀 Quick Start
-
-### 1. Installation
+### Setup
 
 ```bash
 npm install
+cp env.example .env
 ```
 
-### 2. Configuration
+Edit `.env`:
+- `PRIVATE_KEY`: **0x-prefixed** private key for a testnet wallet
+- `POOL_ADDRESSES`: one or more pool addresses (comma-separated)
 
-Create a `.env` file in the project root:
+### Run
 
 ```bash
-cp .env.example .env
-```
-
-Edit `.env` with your configuration:
-
-```env
-# Mantrachain Testnet Configuration
-RPC_URL=https://rpc.dukong.mantrachain.io
-CHAIN_ID=96970
-
-# Your wallet private key (NEVER commit this!)
-PRIVATE_KEY=your_private_key_here
-
-# Trading Configuration
-SWAP_AMOUNT_OM=1.0
-PRICE_IMPACT_TARGET=5.0
-SWAP_INTERVAL_MS=30000
-MAX_SLIPPAGE_PERCENT=10
-
-# Pool Addresses (comma-separated)
-POOL_ADDRESSES=0xYourPoolAddress1,0xYourPoolAddress2
-
-# Logging
-LOG_LEVEL=info
-
-# Advanced (optional overrides)
-POOL_DEPLOYER=0x10253594A832f967994b44f33411940533302ACb
-QUOTER=0x03f8B4b140249Dc7B2503C928E7258CCe1d91F1A
-```
-
-### 3. Build
-
-```bash
+# build + run compiled JS
 npm run build
-```
-
-### 4. Run
-
-```bash
 npm start
-```
 
-Or for development with auto-reload:
-
-```bash
+# or run TS directly (dev)
 npm run dev
 ```
 
-## 📊 Trading Strategies
-
-The bot supports six different strategies:
-
-### 1. Volatility Strategy (Default)
-Alternates between buying and selling to create price volatility.
-
-```typescript
-const botConfig: BotConfig = {
-  poolAddress: '0x...',
-  strategy: BotStrategy.VOLATILITY,
-  numberOfSwaps: 6,
-  amountPerSwap: '1.0',
-  delayBetweenSwapsMs: 30000,
-};
-```
-
-### 2. Pump Token0
-Executes multiple swaps in the Token0 → Token1 direction to pump Token1 price.
-
-```typescript
-const botConfig: BotConfig = {
-  poolAddress: '0x...',
-  strategy: BotStrategy.PUMP_TOKEN0,
-  numberOfSwaps: 5,
-  amountPerSwap: '2.0',
-  delayBetweenSwapsMs: 15000,
-};
-```
-
-### 3. Pump Token1
-Executes multiple swaps in the Token1 → Token0 direction to pump Token0 price.
-
-```typescript
-const botConfig: BotConfig = {
-  poolAddress: '0x...',
-  strategy: BotStrategy.PUMP_TOKEN1,
-  numberOfSwaps: 5,
-  amountPerSwap: '2.0',
-  delayBetweenSwapsMs: 15000,
-};
-```
-
-### 4. Single Swap
-Executes a single directional swap.
-
-```typescript
-const botConfig: BotConfig = {
-  poolAddress: '0x...',
-  strategy: BotStrategy.SINGLE_SWAP,
-  amountPerSwap: '5.0',
-  swapDirection: SwapDirection.TOKEN0_TO_TOKEN1,
-};
-```
-
-### 5. Continuous Strategy
-Runs indefinitely, alternating swaps until stopped (Ctrl+C).
-
-```typescript
-const botConfig: BotConfig = {
-  poolAddress: '0x...',
-  strategy: BotStrategy.CONTINUOUS,
-  amountPerSwap: '1.0',
-  delayBetweenSwapsMs: 60000,
-};
-```
-
-### 6. Target Impact
-Swaps until the target price impact is reached (or max swaps).
-
-```typescript
-const botConfig: BotConfig = {
-  poolAddress: '0x...',
-  strategy: BotStrategy.TARGET_IMPACT,
-  amountPerSwap: '1.0',
-  numberOfSwaps: 20,
-  targetPriceImpactPercent: 5.0,
-  swapDirection: SwapDirection.TOKEN0_TO_TOKEN1,
-};
-```
-
-## 🔧 Advanced Usage
-
-### Custom Script Example
-
-Create a custom script in `src/examples/`:
-
-```typescript
-import { TradingBot, BotStrategy } from '../bot/TradingBot';
-import { validateConfig } from '../config';
-
-async function customTest() {
-  validateConfig();
-  
-  const bot = new TradingBot();
-  
-  // Strategy 1: Create volatility
-  await bot.start({
-    poolAddress: '0xYourPoolAddress',
-    strategy: BotStrategy.VOLATILITY,
-    numberOfSwaps: 10,
-    amountPerSwap: '1.5',
-    delayBetweenSwapsMs: 20000,
-  });
-  
-  // Wait 5 minutes
-  await new Promise(resolve => setTimeout(resolve, 300000));
-  
-  // Strategy 2: Pump in one direction
-  await bot.start({
-    poolAddress: '0xYourPoolAddress',
-    strategy: BotStrategy.PUMP_TOKEN0,
-    numberOfSwaps: 5,
-    amountPerSwap: '3.0',
-    delayBetweenSwapsMs: 30000,
-  });
-}
-
-customTest().catch(console.error);
-```
-
-### Pool Monitoring Only
-
-Monitor a pool without trading:
-
-```typescript
-import { QuickswapClient } from './contracts/QuickswapClient';
-import { PoolMonitor } from './utils/PoolMonitor';
-
-const client = new QuickswapClient();
-const monitor = new PoolMonitor(client);
-
-// Monitor for 10 minutes
-monitor.startMonitoring('0xYourPoolAddress', 10000);
-
-// Stop after 10 minutes and print stats
-setTimeout(async () => {
-  monitor.stopMonitoring();
-  await monitor.printStats('0xYourPoolAddress');
-}, 600000);
-```
-
-## 📝 Contract Addresses (Mantra Dukong Testnet)
-
-The bot automatically uses these testnet contracts:
-
-- **SwapRouter**: `0x3012E9049d05B4B5369D690114D5A5861EbB85cb`
-- **QuoterV2**: `0xa77aD9f635a3FB3bCCC5E6d1A87cB269746Aba17`
-- **AlgebraFactory**: `0x10253594A832f967994b44f33411940533302ACb`
-- **NonfungiblePositionManager**: `0x69D57B9D705eaD73a5d2f2476C30c55bD755cc2F`
-
-Source: [Mantrachain Documentation](https://docs.mantrachain.io/resources/contracts/testnet)
-
-## 📊 Logging
-
-The bot provides comprehensive logging:
-
-- **Console**: Real-time colored output
-- **bot-activity.log**: All bot activities
-- **bot-error.log**: Errors only
-
-Log levels: `error`, `warn`, `info`, `debug`
-
-Set in `.env`:
-```env
-LOG_LEVEL=info
-```
-
-## 🧪 Testing CLM Vault Rebalancing
-
-To effectively test vault rebalancing:
-
-1. **Identify your CLM vault's rebalancing thresholds**
-   - Usually triggers when price moves X% from the center
-
-2. **Start with Volatility Strategy**
-   - Creates rapid price movements in both directions
-   - Good for testing bidirectional rebalancing
-
-3. **Use Pump Strategies for edge cases**
-   - Test what happens when price moves strongly in one direction
-   - Useful for testing range boundaries
-
-4. **Monitor concurrently**
-   - Run the bot in one terminal
-   - Monitor your vault in another
-   - Watch for rebalancing transactions
-
-### Recommended Test Sequence
+### Useful commands
 
 ```bash
-# Terminal 1: Monitor the pool
-npm run dev -- monitor 0xYourPoolAddress
+# monitor the first pool in POOL_ADDRESSES
+npm run monitor
 
-# Terminal 2: Run trading strategies
-npm run dev
+# execute a single example trade (uses first pool in POOL_ADDRESSES)
+npm run single-trade
+
+# run a multi-phase scenario (volatility -> pump -> pump back)
+npm run custom-strategy
+
+# scan factory events for pools
+npm run list-pools
+
+# scan factory events and also fetch token symbols/decimals
+npm run list-pools -- --with-symbols
 ```
 
-## ⚠️ Important Notes
+## Configuration (env)
 
-### Safety
+All configuration lives in `src/config.ts` and is loaded via `dotenv`.
 
-- **This is for TESTNET only!** Never use on mainnet.
-- Store your private key securely
-- Never commit `.env` file to version control
-- Use a dedicated testnet wallet
+- **Required**:
+  - `PRIVATE_KEY`
+  - `POOL_ADDRESSES` (required for examples; bot will refuse to trade without it)
+- **Common knobs**:
+  - `SWAP_AMOUNT_OM` (amount per swap, string)
+  - `SWAP_INTERVAL_MS` (delay between swaps)
+  - `PRICE_IMPACT_TARGET` (used by `target_impact`)
+  - `MAX_SLIPPAGE_PERCENT`
+  - `LOG_LEVEL` (`error|warn|info|debug`)
 
-### Performance
+See `env.example` for a complete template.
 
-- Adjust `SWAP_INTERVAL_MS` based on block time
-- Larger `SWAP_AMOUNT` = more price impact
-- Monitor gas costs (even on testnet)
+## Notes / safety
 
-### Troubleshooting
+- **Testnet only**. Don’t use a mainnet wallet or real funds.
+- `.env` is gitignored; don’t commit private keys.
+- `list-pools` relies on `eth_getLogs`; if your RPC doesn’t support logs, pass an RPC that does:
+  - `npm run list-pools -- --rpc-url https://<evm-rpc> --with-symbols`
 
-**"Insufficient balance" error:**
-- Get testnet tokens from faucet
-- Ensure you have both tokens in the pair
+## More docs
 
-**"Transaction reverted" error:**
-- Increase `MAX_SLIPPAGE_PERCENT`
-- Reduce `SWAP_AMOUNT_OM`
-- Check pool liquidity
-
-**"No pool addresses configured":**
-- Add pool addresses to `.env`
-- Find pools on testnet explorer
-
-## 🔗 Resources
-
-- [Mantrachain Docs](https://docs.mantrachain.io)
-- [Quickswap Testnet Contracts](https://docs.mantrachain.io/resources/contracts/testnet)
-- [Mantrachain Testnet Explorer](https://explorer.dukong.io)
-- [Mantrachain Testnet RPC](https://rpc.dukong.mantrachain.io)
-
-## 📜 License
-
-MIT
-
-## 🤝 Contributing
-
-This is a testing tool. Feel free to customize for your specific needs.
-
-## 💡 Tips
-
-1. **Start small**: Test with small amounts first
-2. **Monitor closely**: Watch both pool and vault
-3. **Adjust timing**: Find the right interval for your tests
-4. **Document results**: Keep notes on what triggers rebalancing
-5. **Test edge cases**: Try extreme price movements
-
----
-
-**Built for testing CLM vault rebalancing on Quickswap/Mantrachain testnet** 🚀
+- **Quick start**: `QUICKSTART.md`
+- **Setup details**: `SETUP.md`
+- **Usage guide**: `USAGE.md`
+- **Contracts (testnet)**: `CONTRACTS.md`
 
