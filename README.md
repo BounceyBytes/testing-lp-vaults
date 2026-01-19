@@ -99,6 +99,24 @@ See `env.example` for a complete template.
 - `list-pools` relies on `eth_getLogs`; if your RPC doesn’t support logs, pass an RPC that does:
   - `npm run list-pools -- --rpc-url https://<evm-rpc> --with-symbols`
 
+## Legacy price-mover scripts (Hardhat)
+
+The prior testing repo is integrated under `tools/testing-lp-vaults/`. These scripts include
+batch scenarios and a `price-mover` CLI for QuickSwap and Lotus. They use Hardhat + ethers v5
+and are kept isolated to avoid dependency conflicts.
+
+```bash
+cd tools/testing-lp-vaults
+npm install
+export TESTNET_RPC_URL=https://rpc.dukong.mantrachain.io
+export PRIVATE_KEY=your_private_key
+node scripts/price-mover.js quickswap WETH/USDC small-up
+```
+
+Docs:
+- `tools/testing-lp-vaults/README.md`
+- `tools/testing-lp-vaults/PRICE_MOVER_README.md`
+
 ## More docs
 
 - **Quick start**: `QUICKSTART.md`

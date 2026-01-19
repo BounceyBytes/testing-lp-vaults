@@ -1,0 +1,73 @@
+{
+  "network": "testnet",
+  "quickswap": {
+    "factory": "0x10253594A832f967994b44f33411940533302ACb",
+    "positionManager": "0x69D57B9D705eaD73a5d2f2476C30c55bD755cc2F",
+    "router": "0x3012E9049d05B4B5369D690114D5A5861EbB85cb",
+    "quoterV2": "0xa77aD9f635a3FB3bCCC5E6d1A87cB269746Aba17",
+    "quoter": "0x03f8B4b140249Dc7B2503C928E7258CCe1d91F1A"
+  },
+  "lotus": {
+    "factory": "0x17E1ebf15BE528b179d34148fB9aB2466555F605",
+    "poolDeployer": "0x41B1E93A249d9635b12344E7976Ff8E4dD2CC9c1",
+    "swapRouter": "0xae52Aa627D6eFAce03Fecd41a79DEEcbc168cb0c",
+    "nonfungiblePositionManager": "0x84fb9302f2232050bB30D0C15Cef44823153De6f"
+  },
+  "tokens": {
+    "WETH": "0x1398471040295884df72Bf1805e2720D2c5ae4728",
+    "USDC": "0xDcc8a320dc2Ce505bB37DAb4b47ECE8E3ad1864F",
+    "USDT": "0xCDb248d19195e23a4cdffCa8a67dD8c7f97000D9",
+    "WBTC": "0x2A8E20Ba7aB3C3A90527EF0d2d970fd22f7C25AB",
+    "MATIC": "0x0000000000000000000000000000000000000000",
+    "DAI": "0x0000000000000000000000000000000000000000"
+  },
+  "network_info": {
+    "name": "Dukong Testnet",
+    "explorer": "https://explorer.dukong.io",
+    "chainId": 5887,
+    "rpcUrl": "https://rpc.dukong.mantrachain.io",
+    "currency": "OM"
+  },
+  "dapp": {
+    "url": "https://mantra-lst-frontend.vercel.app/vault",
+    "description": "LP Vault Frontend for testing"
+  },
+  "pairs": [
+    {
+      "name": "WETH/USDC",
+      "token0": "WETH",
+      "token1": "USDC",
+      "feeTier": 3000
+    },
+    {
+      "name": "WETH/USDT",
+      "token0": "WETH",
+      "token1": "USDT",
+      "feeTier": 3000
+    },
+    {
+      "name": "WBTC/WETH",
+      "token0": "WBTC",
+      "token1": "WETH",
+      "feeTier": 3000
+    },
+    {
+      "name": "MATIC/USDC",
+      "token0": "MATIC",
+      "token1": "USDC",
+      "feeTier": 3000
+    },
+    {
+      "name": "USDC/USDT",
+      "token0": "USDC",
+      "token1": "USDT",
+      "feeTier": 500
+    },
+    {
+      "name": "DAI/USDC",
+      "token0": "DAI",
+      "token1": "USDC",
+      "feeTier": 500
+    }
+  ]
+}
