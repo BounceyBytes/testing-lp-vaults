@@ -1,0 +1,40 @@
+{
+  "name": "quickswap-testnet-bot",
+  "version": "1.0.0",
+  "description": "Trading bot for testing CLM vault rebalancing on Quickswap Mantrachain testnet",
+  "main": "dist/index.js",
+  "scripts": {
+    "build": "tsc",
+    "start": "node dist/index.js",
+    "dev": "ts-node src/index.ts",
+    "monitor": "ts-node src/examples/monitor-example.ts",
+    "single-trade": "ts-node src/examples/single-trade.ts",
+    "custom-strategy": "ts-node src/examples/custom-strategy.ts",
+    "list-pools": "ts-node src/examples/list-pools.ts",
+    "test": "jest",
+    "lint": "eslint src --ext .ts"
+  },
+  "keywords": [
+    "quickswap",
+    "trading-bot",
+    "defi",
+    "mantrachain",
+    "testnet"
+  ],
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "ethers": "^6.9.0",
+    "dotenv": "^16.3.1",
+    "winston": "^3.11.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20.10.6",
+    "typescript": "^5.3.3",
+    "ts-node": "^10.9.2",
+    "@typescript-eslint/eslint-plugin": "^6.17.0",
+    "@typescript-eslint/parser": "^6.17.0",
+    "eslint": "^8.56.0"
+  }
+}
+

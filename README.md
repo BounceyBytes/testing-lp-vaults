@@ -53,7 +53,10 @@ Step-by-step frontend testing workflows:
 - `package.json` - Dependencies and scripts
 - `.env.example` - Environment variable template
 
-## 🚀 Quick Start
+### 5. TypeScript Quickswap Bot (`quickswap-bot/`)
+A TypeScript trading + monitoring bot for targeted price impact testing on QuickSwap/Algebra, including a target-impact strategy and pool monitoring utilities.
+
+## 🚀 Quick Start (Price Mover)
 
 ### 1. Install Dependencies
 
@@ -84,6 +87,19 @@ node scripts/batch-price-scenarios.js
 2. Connect your wallet (Dukong Testnet)
 3. Follow the workflows in `DAPP_TESTING_GUIDE.md`
 4. Use price mover scripts to create different market conditions
+
+## 🚀 Quick Start (TypeScript Bot)
+
+```bash
+cd quickswap-bot
+npm install
+cp env.example .env
+# Edit .env with PRIVATE_KEY + POOL_ADDRESSES
+npm run build
+npm start
+```
+
+See `quickswap-bot/README.md` for strategies and examples.
 
 ## 📦 Testnet Addresses
 
@@ -147,6 +163,7 @@ node scripts/price-mover.js <dex> <pair> gradual-down
 | `PRICE_MOVER_README.md` | Detailed guide for price movement scripts |
 | `DAPP_TESTING_GUIDE.md` | Step-by-step dApp testing workflows |
 | `README.md` | This file - quick reference |
+| `quickswap-bot/README.md` | TypeScript bot usage and strategies |
 
 ## 🧪 Testing Workflow
 
@@ -305,3 +322,4 @@ For issues or questions:
 - 📖 [Test Plan](./LP_VAULT_TEST_PLAN.md)
 - 🎮 [Price Mover Guide](./PRICE_MOVER_README.md)
 - 🖥️ [DApp Testing Guide](./DAPP_TESTING_GUIDE.md)
+- 🤖 [Quickswap Bot](./quickswap-bot/README.md)
