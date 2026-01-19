@@ -82,7 +82,7 @@ async function main() {
   console.log(`OM for gas:  ${hasOM ? '✓' : '✗'} ${hasOM ? 'Ready' : 'Need more OM from faucet'}`);
   console.log(`WETH:        ${hasWETH ? '✓' : '✗'} ${hasWETH ? 'Ready' : 'Need to mint WETH'}`);
   console.log(`USDC:        ${hasUSDC ? '✓' : '✗'} ${hasUSDC ? 'Ready' : 'Need to mint USDC'}`);
-  console.log(`USDT:        ${hasUSDT ? '✓' : '✗'} ${hasUSDT ? 'Need to mint USDT'}`);
+  console.log(`USDT:        ${hasUSDT ? '✓' : '✗'} ${hasUSDT ? 'Ready' : 'Need to mint USDT'}`);
   console.log(`WBTC:        ${hasWBTC ? '✓' : '✗'} ${hasWBTC ? 'Ready' : 'Need to mint WBTC'}`);
 
   const allReady = hasOM && hasWETH && hasUSDC && hasUSDT && hasWBTC;
