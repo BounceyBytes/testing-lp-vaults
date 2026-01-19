@@ -3,8 +3,13 @@
   "version": "1.0.0",
   "description": "LP Vault testing scripts for QuickSwap and Lotus DEX",
   "scripts": {
+    "check-balance": "npx hardhat run scripts/check-balance.js --network testnet",
+    "check-tokens": "npx hardhat run scripts/check-token-balances.js --network testnet",
+    "mint-tokens": "npx hardhat run scripts/mint-tokens.js --network testnet",
     "price-move": "node scripts/price-mover.js",
     "batch-test": "node scripts/batch-price-scenarios.js",
+    "quick-test": "node scripts/run-quick-test.js",
+    "full-test": "node scripts/run-full-test-suite.js",
     "test": "hardhat test",
     "compile": "hardhat compile"
   },
