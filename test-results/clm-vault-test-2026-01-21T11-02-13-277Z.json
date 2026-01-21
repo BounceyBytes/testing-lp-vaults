@@ -1,0 +1,754 @@
+{
+  "timestamp": "2026-01-21T10:54:14.646Z",
+  "tests": [
+    {
+      "vault": "Lotus WETH-USDT",
+      "address": "0x1e27612d5240d25b70608cdabe1446e67ae7c48f",
+      "pool": "0x16614FCF1b082e021349F7Dc5aFE22d96641e71C",
+      "dex": "lotus",
+      "pair": "WETH/USDT",
+      "initialState": {
+        "totalSupply": "171820.738200309356113505",
+        "amount0": "10.43903040225335155",
+        "amount1": "42420.814626884012454917",
+        "tick": 83147,
+        "tickLower": null,
+        "tickUpper": null,
+        "isInRange": null,
+        "tokenComposition": {
+          "token0Pct": 50.11291732530343,
+          "token1Pct": 49.887082674696565
+        },
+        "pricePerShare": "0.494897563728799339",
+        "tvl": 85033.66473341695
+      },
+      "results": [
+        {
+          "scenario": "small-up",
+          "success": true,
+          "timestamp": "2026-01-21T10:55:01.396Z",
+          "swap": {
+            "direction": "up",
+            "amount": "0.01",
+            "tokenIn": "WETH",
+            "tokenOut": "USDT"
+          },
+          "before": {
+            "tick": 83147,
+            "price": 4082.0697387119976,
+            "tickLower": null,
+            "tickUpper": null,
+            "isInRange": null,
+            "tokenComposition": {
+              "token0Pct": 50.11291732530343,
+              "token1Pct": 49.887082674696565
+            },
+            "liquidityUtilization": null,
+            "pricePerShare": "0.494897563728799339",
+            "tvl": 85033.66473341695,
+            "userShares": "404.036277624647525552",
+            "userShareValue": 199.95656945449088,
+            "amount0": "10.43903040225335155",
+            "amount1": "42420.814626884012454917"
+          },
+          "after": {
+            "tick": 83147,
+            "price": 4081.93989479936,
+            "tickLower": null,
+            "tickUpper": null,
+            "isInRange": null,
+            "tokenComposition": {
+              "token0Pct": 50.1216044391939,
+              "token1Pct": 49.87839556080609
+            },
+            "liquidityUtilization": null,
+            "pricePerShare": "0.494889674269099078",
+            "tvl": 85032.30916062725,
+            "userShares": "404.036277624647525552",
+            "userShareValue": 199.9533818265611,
+            "amount0": "10.441005683915617014",
+            "amount1": "42412.751517625215454003"
+          },
+          "deltas": {
+            "tick": 0,
+            "priceChange": -0.0031808352367491497,
+            "token0CompositionShift": 0.008687113890474052,
+            "rangeStatusChanged": false,
+            "pricePerShareChange": -0.0015941601411043468,
+            "tvlChange": -0.0015941601411082178,
+            "userValueChange": -0.0015941601411109002
+          }
+        },
+        {
+          "scenario": "small-down",
+          "success": true,
+          "timestamp": "2026-01-21T10:55:39.111Z",
+          "swap": {
+            "direction": "down",
+            "amount": "0.01",
+            "tokenIn": "USDT",
+            "tokenOut": "WETH"
+          },
+          "before": {
+            "tick": 83147,
+            "price": 4081.93989479936,
+            "tickLower": null,
+            "tickUpper": null,
+            "isInRange": null,
+            "tokenComposition": {
+              "token0Pct": 50.1216044391939,
+              "token1Pct": 49.87839556080609
+            },
+            "liquidityUtilization": null,
+            "pricePerShare": "0.494889674269099078",
+            "tvl": 85032.30916062725,
+            "userShares": "404.036277624647525552",
+            "userShareValue": 199.9533818265611,
+            "amount0": "10.441005683915617014",
+            "amount1": "42412.751517625215454003"
+          },
+          "after": {
+            "tick": 83147,
+            "price": 4081.9399266079645,
+            "tickLower": null,
+            "tickUpper": null,
+            "isInRange": null,
+            "tokenComposition": {
+              "token0Pct": 50.12160231102799,
+              "token1Pct": 49.878397688972
+            },
+            "liquidityUtilization": null,
+            "pricePerShare": "0.494889676202007911",
+            "tvl": 85032.30949274107,
+            "userShares": "404.036277624647525552",
+            "userShareValue": 199.9533826075264,
+            "amount0": "10.441005200008037413",
+            "amount1": "42412.753492906877719467"
+          },
+          "deltas": {
+            "tick": 0,
+            "priceChange": 7.792521524006446e-7,
+            "token0CompositionShift": -0.0000021281659101646255,
+            "rangeStatusChanged": false,
+            "pricePerShareChange": 3.9057368409349783e-7,
+            "tvlChange": 3.905736823306746e-7,
+            "userValueChange": 3.9057369337204645e-7
+          }
+        },
+        {
+          "scenario": "large-up",
+          "success": true,
+          "timestamp": "2026-01-21T10:56:21.909Z",
+          "swap": {
+            "direction": "up",
+            "amount": "0.1",
+            "tokenIn": "WETH",
+            "tokenOut": "USDT"
+          },
+          "before": {
+            "tick": 83147,
+            "price": 4081.9399266079645,
+            "tickLower": null,
+            "tickUpper": null,
+            "isInRange": null,
+            "tokenComposition": {
+              "token0Pct": 50.12160231102799,
+              "token1Pct": 49.878397688972
+            },
+            "liquidityUtilization": null,
+            "pricePerShare": "0.494889676202007911",
+            "tvl": 85032.30949274107,
+            "userShares": "404.036277624647525552",
+            "userShareValue": 199.9533826075264,
+            "amount0": "10.441005200008037413",
+            "amount1": "42412.753492906877719467"
+          },
+          "after": {
+            "tick": 83144,
+            "price": 4080.6418281309525,
+            "tickLower": null,
+            "tickUpper": null,
+            "isInRange": null,
+            "tokenComposition": {
+              "token0Pct": 50.20846592148459,
+              "token1Pct": 49.79153407851541
+            },
+            "liquidityUtilization": null,
+            "pricePerShare": "0.494810720235330848",
+            "tvl": 85018.7432202613,
+            "userShares": "404.036277624647525552",
+            "userShareValue": 199.92148153265393,
+            "amount0": "10.46075801663069205",
+            "amount1": "42332.136503641914073093"
+          },
+          "deltas": {
+            "tick": -3,
+            "priceChange": -0.031801018641905696,
+            "token0CompositionShift": 0.08686361045659652,
+            "rangeStatusChanged": false,
+            "pricePerShareChange": -0.01595425616533462,
+            "tvlChange": -0.01595425616533577,
+            "userValueChange": -0.015954256165346063
+          }
+        },
+        {
+          "scenario": "large-down",
+          "success": true,
+          "timestamp": "2026-01-21T10:56:58.679Z",
+          "swap": {
+            "direction": "down",
+            "amount": "0.1",
+            "tokenIn": "USDT",
+            "tokenOut": "WETH"
+          },
+          "before": {
+            "tick": 83144,
+            "price": 4080.6418281309525,
+            "tickLower": null,
+            "tickUpper": null,
+            "isInRange": null,
+            "tokenComposition": {
+              "token0Pct": 50.20846592148459,
+              "token1Pct": 49.79153407851541
+            },
+            "liquidityUtilization": null,
+            "pricePerShare": "0.494810720235330848",
+            "tvl": 85018.7432202613,
+            "userShares": "404.036277624647525552",
+            "userShareValue": 199.92148153265393,
+            "amount0": "10.46075801663069205",
+            "amount1": "42332.136503641914073093"
+          },
+          "after": {
+            "tick": 83144,
+            "price": 4080.6421461664318,
+            "tickLower": null,
+            "tickUpper": null,
+            "isInRange": null,
+            "tokenComposition": {
+              "token0Pct": 50.20844463640679,
+              "token1Pct": 49.79155536359321
+            },
+            "liquidityUtilization": null,
+            "pricePerShare": "0.494810739597902893",
+            "tvl": 85018.74654715272,
+            "userShares": "404.036277624647525552",
+            "userShareValue": 199.92148935583546,
+            "amount0": "10.460753176015738603",
+            "amount1": "42332.15625645853672773"
+          },
+          "deltas": {
+            "tick": 0,
+            "priceChange": 0.000007793761194013772,
+            "token0CompositionShift": -0.000021285077799859664,
+            "rangeStatusChanged": false,
+            "pricePerShareChange": 0.000003913127030979149,
+            "tvlChange": 0.000003913127036089449,
+            "userValueChange": 0.000003913127030532279
+          }
+        }
+      ]
+    },
+    {
+      "vault": "Lotus WBTC-USDC",
+      "address": "0xacd6e64e56f66e4f010709d54686792ea96b7230",
+      "pool": "0xfD6B4B088f8A73A03AedbB87A4631A317cB97147",
+      "dex": "lotus",
+      "pair": "WBTC/USDC",
+      "initialState": {
+        "totalSupply": "1497.177421660812130252",
+        "amount0": "1.129706681900446743",
+        "amount1": "120897.798317083002365699",
+        "tick": 116018,
+        "tickLower": null,
+        "tickUpper": null,
+        "isInRange": null,
+        "tokenComposition": {
+          "token0Pct": 50.51326986840362,
+          "token1Pct": 49.48673013159638
+        },
+        "pricePerShare": "163.176030633027494332",
+        "tvl": 244303.4688200018
+      },
+      "results": [
+        {
+          "scenario": "small-up",
+          "success": true,
+          "timestamp": "2026-01-21T10:57:44.956Z",
+          "swap": {
+            "direction": "up",
+            "amount": "0.01",
+            "tokenIn": "WBTC",
+            "tokenOut": "USDC"
+          },
+          "before": {
+            "tick": 116018,
+            "price": 109236.912979323,
+            "tickLower": null,
+            "tickUpper": null,
+            "isInRange": null,
+            "tokenComposition": {
+              "token0Pct": 50.51326986840362,
+              "token1Pct": 49.48673013159638
+            },
+            "liquidityUtilization": null,
+            "pricePerShare": "163.176030633027494332",
+            "tvl": 244303.4688200018,
+            "userShares": "1.224509288854717656",
+            "userShareValue": 199.8105652285841,
+            "amount0": "1.129706681900446743",
+            "amount1": "120897.798317083002365699"
+          },
+          "after": {
+            "tick": 116017,
+            "price": 109221.07790254499,
+            "tickLower": null,
+            "tickUpper": null,
+            "isInRange": null,
+            "tokenComposition": {
+              "token0Pct": 50.55273293122391,
+              "token1Pct": 49.4472670687761
+            },
+            "liquidityUtilization": null,
+            "pricePerShare": "163.164077058734164893",
+            "tvl": 244285.57219846168,
+            "userShares": "1.224509288854717656",
+            "userShareValue": 199.7959279658269,
+            "amount0": "1.130670336482029351",
+            "amount1": "120792.539295461205165364"
+          },
+          "deltas": {
+            "tick": -1,
+            "priceChange": -0.01449608593480116,
+            "token0CompositionShift": 0.039463062820289,
+            "rangeStatusChanged": false,
+            "pricePerShareChange": -0.007325569966959342,
+            "tvlChange": -0.007325569966964519,
+            "userValueChange": -0.00732556996695625
+          }
+        },
+        {
+          "scenario": "small-down",
+          "success": true,
+          "timestamp": "2026-01-21T10:58:19.494Z",
+          "swap": {
+            "direction": "down",
+            "amount": "0.01",
+            "tokenIn": "USDC",
+            "tokenOut": "WBTC"
+          },
+          "before": {
+            "tick": 116017,
+            "price": 109221.07790254499,
+            "tickLower": null,
+            "tickUpper": null,
+            "isInRange": null,
+            "tokenComposition": {
+              "token0Pct": 50.55273293122391,
+              "token1Pct": 49.4472670687761
+            },
+            "liquidityUtilization": null,
+            "pricePerShare": "163.164077058734164893",
+            "tvl": 244285.57219846168,
+            "userShares": "1.224509288854717656",
+            "userShareValue": 199.7959279658269,
+            "amount0": "1.130670336482029351",
+            "amount1": "120792.539295461205165364"
+          },
+          "after": {
+            "tick": 116017,
+            "price": 109221.0780475111,
+            "tickLower": null,
+            "tickUpper": null,
+            "isInRange": null,
+            "tokenComposition": {
+              "token0Pct": 50.552732569922945,
+              "token1Pct": 49.44726743007706
+            },
+            "liquidityUtilization": null,
+            "pricePerShare": "163.164077168212742208",
+            "tvl": 244285.57236237056,
+            "userShares": "1.224509288854717656",
+            "userShareValue": 199.79592809988443,
+            "amount0": "1.130670327659056721",
+            "amount1": "120792.540259115786747972"
+          },
+          "deltas": {
+            "tick": 0,
+            "priceChange": 1.327272258517388e-7,
+            "token0CompositionShift": -3.6130096248143673e-7,
+            "rangeStatusChanged": false,
+            "pricePerShareChange": 6.709723076813916e-8,
+            "tvlChange": 6.709723859003868e-8,
+            "userValueChange": 6.709722809996343e-8
+          }
+        },
+        {
+          "scenario": "large-up",
+          "success": true,
+          "timestamp": "2026-01-21T10:58:59.347Z",
+          "swap": {
+            "direction": "up",
+            "amount": "0.1",
+            "tokenIn": "WBTC",
+            "tokenOut": "USDC"
+          },
+          "before": {
+            "tick": 116017,
+            "price": 109221.0780475111,
+            "tickLower": null,
+            "tickUpper": null,
+            "isInRange": null,
+            "tokenComposition": {
+              "token0Pct": 50.552732569922945,
+              "token1Pct": 49.44726743007706
+            },
+            "liquidityUtilization": null,
+            "pricePerShare": "163.164077168212742208",
+            "tvl": 244285.57236237056,
+            "userShares": "1.224509288854717656",
+            "userShareValue": 199.79592809988443,
+            "amount0": "1.130670327659056721",
+            "amount1": "120792.540259115786747972"
+          },
+          "after": {
+            "tick": 116002,
+            "price": 109062.91647710622,
+            "tickLower": null,
+            "tickUpper": null,
+            "isInRange": null,
+            "tokenComposition": {
+              "token0Pct": 50.947212473949754,
+              "token1Pct": 49.052787526050246
+            },
+            "liquidityUtilization": null,
+            "pricePerShare": "163.044124528291774823",
+            "tvl": 244105.98197821225,
+            "userShares": "1.224509288854717656",
+            "userShareValue": 199.64904497807856,
+            "amount0": "1.1403068734748828",
+            "amount1": "119740.788678150951658726"
+          },
+          "deltas": {
+            "tick": -15,
+            "priceChange": -0.14480865161949266,
+            "token0CompositionShift": 0.39447990402680944,
+            "rangeStatusChanged": false,
+            "pricePerShareChange": -0.07351657423790847,
+            "tvlChange": -0.07351657423791831,
+            "userValueChange": -0.07351657423790911
+          }
+        },
+        {
+          "scenario": "large-down",
+          "success": true,
+          "timestamp": "2026-01-21T10:59:35.069Z",
+          "swap": {
+            "direction": "down",
+            "amount": "0.1",
+            "tokenIn": "USDC",
+            "tokenOut": "WBTC"
+          },
+          "before": {
+            "tick": 116002,
+            "price": 109062.91647710622,
+            "tickLower": null,
+            "tickUpper": null,
+            "isInRange": null,
+            "tokenComposition": {
+              "token0Pct": 50.947212473949754,
+              "token1Pct": 49.052787526050246
+            },
+            "liquidityUtilization": null,
+            "pricePerShare": "163.044124528291774823",
+            "tvl": 244105.98197821225,
+            "userShares": "1.224509288854717656",
+            "userShareValue": 199.64904497807856,
+            "amount0": "1.1403068734748828",
+            "amount1": "119740.788678150951658726"
+          },
+          "after": {
+            "tick": 116002,
+            "price": 109062.91792571732,
+            "tickLower": null,
+            "tickUpper": null,
+            "isInRange": null,
+            "tokenComposition": {
+              "token0Pct": 50.94720885819983,
+              "token1Pct": 49.05279114180016
+            },
+            "liquidityUtilization": null,
+            "pricePerShare": "163.044125631608665117",
+            "tvl": 244105.98363007337,
+            "userShares": "1.224509288854717656",
+            "userShareValue": 199.64904632910034,
+            "amount0": "1.140306785117207587",
+            "amount1": "119740.798314696767484805"
+          },
+          "deltas": {
+            "tick": 0,
+            "priceChange": 0.0000013282343347371928,
+            "token0CompositionShift": -0.0000036157499252453817,
+            "rangeStatusChanged": false,
+            "pricePerShareChange": 6.766983437680586e-7,
+            "tvlChange": 6.766983379197925e-7,
+            "userValueChange": 6.766983433010212e-7
+          }
+        }
+      ]
+    },
+    {
+      "vault": "Lotus USDC-USDT",
+      "address": "0xbbbd57224d28ec578dfe4adc4f50a524804251fe",
+      "pool": "0x76d4d2BCDc79be85805BbfE7426d59ED374f8dC0",
+      "dex": "lotus",
+      "pair": "USDC/USDT",
+      "initialState": {
+        "totalSupply": "829.605646880988761864",
+        "amount0": "419.785343943348079194",
+        "amount1": "414.821744692109822487",
+        "tick": -120,
+        "tickLower": null,
+        "tickUpper": null,
+        "isInRange": null,
+        "tokenComposition": {
+          "token0Pct": 49.9978106423202,
+          "token1Pct": 50.00218935767982
+        },
+        "pricePerShare": "1.000001827816571431",
+        "tvl": 829.6071632479379
+      },
+      "results": [
+        {
+          "scenario": "small-up",
+          "success": true,
+          "timestamp": "2026-01-21T11:00:21.961Z",
+          "swap": {
+            "direction": "up",
+            "amount": "1.0",
+            "tokenIn": "USDC",
+            "tokenOut": "USDT"
+          },
+          "before": {
+            "tick": -120,
+            "price": 0.9880893283682751,
+            "tickLower": null,
+            "tickUpper": null,
+            "isInRange": null,
+            "tokenComposition": {
+              "token0Pct": 49.9978106423202,
+              "token1Pct": 50.00218935767982
+            },
+            "liquidityUtilization": null,
+            "pricePerShare": "1.000001827816571431",
+            "tvl": 829.6071632479379,
+            "userShares": "199.999699697065438228",
+            "userShareValue": 200.00006525983082,
+            "amount0": "419.785343943348079194",
+            "amount1": "414.821744692109822487"
+          },
+          "after": {
+            "tick": -120,
+            "price": 0.988092645651269,
+            "tickLower": null,
+            "tickUpper": null,
+            "isInRange": null,
+            "tokenComposition": {
+              "token0Pct": 49.98667346208749,
+              "token1Pct": 50.01332653791252
+            },
+            "liquidityUtilization": null,
+            "pricePerShare": "1.000003506192944425",
+            "tvl": 829.6085556384544,
+            "userShares": "199.999699697065438228",
+            "userShareValue": 200.0004009346014,
+            "amount0": "419.69113073117025704",
+            "amount1": "414.914835917919836687"
+          },
+          "deltas": {
+            "tick": 0,
+            "priceChange": 0.00033572703384332633,
+            "token0CompositionShift": -0.011137180232708488,
+            "rangeStatusChanged": false,
+            "pricePerShareChange": 0.0001678373305234744,
+            "tvlChange": 0.00016783733050305415,
+            "userValueChange": 0.00016783733052595735
+          }
+        },
+        {
+          "scenario": "small-down",
+          "success": true,
+          "timestamp": "2026-01-21T11:00:56.794Z",
+          "swap": {
+            "direction": "down",
+            "amount": "1.0",
+            "tokenIn": "USDT",
+            "tokenOut": "USDC"
+          },
+          "before": {
+            "tick": -120,
+            "price": 0.988092645651269,
+            "tickLower": null,
+            "tickUpper": null,
+            "isInRange": null,
+            "tokenComposition": {
+              "token0Pct": 49.98667346208749,
+              "token1Pct": 50.01332653791252
+            },
+            "liquidityUtilization": null,
+            "pricePerShare": "1.000003506192944425",
+            "tvl": 829.6085556384544,
+            "userShares": "199.999699697065438228",
+            "userShareValue": 200.0004009346014,
+            "amount0": "419.69113073117025704",
+            "amount1": "414.914835917919836687"
+          },
+          "after": {
+            "tick": -120,
+            "price": 0.9880893678737428,
+            "tickLower": null,
+            "tickUpper": null,
+            "isInRange": null,
+            "tokenComposition": {
+              "token0Pct": 49.99767800960613,
+              "token1Pct": 50.002321990393874
+            },
+            "liquidityUtilization": null,
+            "pricePerShare": "1.00000184780654422",
+            "tvl": 829.6071798317322,
+            "userShares": "199.999699697065438228",
+            "userShareValue": 200.00006925781938,
+            "amount0": "419.78422195698027124",
+            "amount1": "414.822853314888590506"
+          },
+          "deltas": {
+            "tick": 0,
+            "priceChange": -0.0003317277525143267,
+            "token0CompositionShift": 0.011004547518645325,
+            "rangeStatusChanged": false,
+            "pricePerShareChange": -0.00016583805856027948,
+            "tvlChange": -0.00016583805854503074,
+            "userValueChange": -0.00016583805856150538
+          }
+        },
+        {
+          "scenario": "large-up",
+          "success": true,
+          "timestamp": "2026-01-21T11:01:37.589Z",
+          "swap": {
+            "direction": "up",
+            "amount": "10.0",
+            "tokenIn": "USDC",
+            "tokenOut": "USDT"
+          },
+          "before": {
+            "tick": -120,
+            "price": 0.9880893678737428,
+            "tickLower": null,
+            "tickUpper": null,
+            "isInRange": null,
+            "tokenComposition": {
+              "token0Pct": 49.99767800960613,
+              "token1Pct": 50.002321990393874
+            },
+            "liquidityUtilization": null,
+            "pricePerShare": "1.00000184780654422",
+            "tvl": 829.6071798317322,
+            "userShares": "199.999699697065438228",
+            "userShareValue": 200.00006925781938,
+            "amount0": "419.78422195698027124",
+            "amount1": "414.822853314888590506"
+          },
+          "after": {
+            "tick": -120,
+            "price": 0.9881225409549295,
+            "tickLower": null,
+            "tickUpper": null,
+            "isInRange": null,
+            "tokenComposition": {
+              "token0Pct": 49.886307048597025,
+              "token1Pct": 50.113692951402975
+            },
+            "liquidityUtilization": null,
+            "pricePerShare": "1.000018614699972552",
+            "tvl": 829.6210897412009,
+            "userShares": "199.999699697065438228",
+            "userShareValue": 200.0034226314699,
+            "amount0": "418.842104106083338862",
+            "amount1": "415.753765572988732503"
+          },
+          "deltas": {
+            "tick": 0,
+            "priceChange": 0.0033572956318769723,
+            "token0CompositionShift": -0.11137096100910782,
+            "rangeStatusChanged": false,
+            "pricePerShareChange": 0.0016766862446414552,
+            "tvlChange": 0.0016766862446273903,
+            "userValueChange": 0.001676686244644953
+          }
+        },
+        {
+          "scenario": "large-down",
+          "success": true,
+          "timestamp": "2026-01-21T11:02:13.274Z",
+          "swap": {
+            "direction": "down",
+            "amount": "10.0",
+            "tokenIn": "USDT",
+            "tokenOut": "USDC"
+          },
+          "before": {
+            "tick": -120,
+            "price": 0.9881225409549295,
+            "tickLower": null,
+            "tickUpper": null,
+            "isInRange": null,
+            "tokenComposition": {
+              "token0Pct": 49.886307048597025,
+              "token1Pct": 50.113692951402975
+            },
+            "liquidityUtilization": null,
+            "pricePerShare": "1.000018614699972552",
+            "tvl": 829.6210897412009,
+            "userShares": "199.999699697065438228",
+            "userShareValue": 200.0034226314699,
+            "amount0": "418.842104106083338862",
+            "amount1": "415.753765572988732503"
+          },
+          "after": {
+            "tick": -120,
+            "price": 0.9880897624260708,
+            "tickLower": null,
+            "tickUpper": null,
+            "isInRange": null,
+            "tokenComposition": {
+              "token0Pct": 49.99635336931546,
+              "token1Pct": 50.00364663068454
+            },
+            "liquidityUtilization": null,
+            "pricePerShare": "1.000002047449148002",
+            "tvl": 829.6073454563636,
+            "userShares": "199.999699697065438228",
+            "userShareValue": 200.00010918628018,
+            "amount0": "419.773016364183480858",
+            "amount1": "414.833925444202417822"
+          },
+          "deltas": {
+            "tick": 0,
+            "priceChange": -0.003317253427591805,
+            "token0CompositionShift": 0.1100463207184319,
+            "rangeStatusChanged": false,
+            "pricePerShareChange": -0.0016566942435887776,
+            "tvlChange": -0.0016566942435754298,
+            "userValueChange": -0.0016566942435898907
+          }
+        }
+      ]
+    }
+  ],
+  "summary": {
+    "total": 12,
+    "passed": 12,
+    "failed": 0
+  }
+}
