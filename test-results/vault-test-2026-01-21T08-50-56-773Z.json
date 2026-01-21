@@ -1,0 +1,100 @@
+{
+  "timestamp": "2026-01-21T08:47:43.550Z",
+  "tests": [
+    {
+      "vault": "Lotus WETH-USDT",
+      "address": "0x1e27612d5240d25b70608cdabe1446e67ae7c48f",
+      "results": [
+        {
+          "scenario": "small-up",
+          "success": true,
+          "initialTick": 83151,
+          "finalTick": 83150
+        },
+        {
+          "scenario": "small-down",
+          "success": true,
+          "initialTick": 83151,
+          "finalTick": 83150
+        },
+        {
+          "scenario": "large-up",
+          "success": true,
+          "initialTick": 83151,
+          "finalTick": 83147
+        },
+        {
+          "scenario": "large-down",
+          "success": true,
+          "initialTick": 83151,
+          "finalTick": 83147
+        }
+      ]
+    },
+    {
+      "vault": "Lotus WBTC-USDC",
+      "address": "0xacd6e64e56f66e4f010709d54686792ea96b7230",
+      "results": [
+        {
+          "scenario": "small-up",
+          "success": true,
+          "initialTick": 116034,
+          "finalTick": 116033
+        },
+        {
+          "scenario": "small-down",
+          "success": true,
+          "initialTick": 116034,
+          "finalTick": 116033
+        },
+        {
+          "scenario": "large-up",
+          "success": true,
+          "initialTick": 116034,
+          "finalTick": 116018
+        },
+        {
+          "scenario": "large-down",
+          "success": true,
+          "initialTick": 116034,
+          "finalTick": 116018
+        }
+      ]
+    },
+    {
+      "vault": "Lotus USDC-USDT",
+      "address": "0xbbbd57224d28ec578dfe4adc4f50a524804251fe",
+      "results": [
+        {
+          "scenario": "small-up",
+          "success": true,
+          "initialTick": -120,
+          "finalTick": -120
+        },
+        {
+          "scenario": "small-down",
+          "success": true,
+          "initialTick": -120,
+          "finalTick": -120
+        },
+        {
+          "scenario": "large-up",
+          "success": true,
+          "initialTick": -120,
+          "finalTick": -120
+        },
+        {
+          "scenario": "large-down",
+          "success": true,
+          "initialTick": -120,
+          "finalTick": -120
+        }
+      ]
+    }
+  ],
+  "summary": {
+    "total": 12,
+    "passed": 12,
+    "failed": 0
+  }
+}
