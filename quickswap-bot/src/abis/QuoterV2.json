@@ -12,6 +12,11 @@
         "type": "address"
       },
       {
+        "internalType": "address",
+        "name": "deployer",
+        "type": "address"
+      },
+      {
         "internalType": "uint256",
         "name": "amountIn",
         "type": "uint256"
@@ -47,6 +52,54 @@
     ],
     "stateMutability": "nonpayable",
     "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "address",
+        "name": "tokenIn",
+        "type": "address"
+      },
+      {
+        "internalType": "address",
+        "name": "tokenOut",
+        "type": "address"
+      },
+      {
+        "internalType": "uint256",
+        "name": "amountIn",
+        "type": "uint256"
+      },
+      {
+        "internalType": "uint160",
+        "name": "limitSqrtPrice",
+        "type": "uint160"
+      }
+    ],
+    "name": "quoteExactInputSingleWithoutDeployer",
+    "outputs": [
+      {
+        "internalType": "uint256",
+        "name": "amountOut",
+        "type": "uint256"
+      },
+      {
+        "internalType": "uint160",
+        "name": "sqrtPriceX96After",
+        "type": "uint160"
+      },
+      {
+        "internalType": "uint32",
+        "name": "initializedTicksCrossed",
+        "type": "uint32"
+      },
+      {
+        "internalType": "uint256",
+        "name": "gasEstimate",
+        "type": "uint256"
+      }
+    ],
+    "stateMutability": "nonpayable",
+    "type": "function"
   }
 ]
-

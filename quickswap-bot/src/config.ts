@@ -36,7 +36,7 @@ export const config: Config = {
     swapRouter: '0x3012E9049d05B4B5369D690114D5A5861EbB85cb',
     nonfungiblePositionManager: '0x69D57B9D705eaD73a5d2f2476C30c55bD755cc2F',
     algebraFactory: '0x10253594A832f967994b44f33411940533302ACb',
-    poolDeployer: process.env.POOL_DEPLOYER || '0x10253594A832f967994b44f33411940533302ACb',
+    poolDeployer: process.env.POOL_DEPLOYER || '0xd7cB0E0692f2D55A17bA81c1fE5501D66774fC4A',
     quoterV2: '0xa77aD9f635a3FB3bCCC5E6d1A87cB269746Aba17',
     quoter: '0x03f8B4b140249Dc7B2503C928E7258CCe1d91F1A',
   },

@@ -320,12 +320,15 @@ node scripts/batch-price-scenarios.js
 
 ## Contract Addresses Reference
 
-**QuickSwap Testnet:**
+**QuickSwap Testnet (Algebra Protocol):**
 - Factory: `0x10253594A832f967994b44f33411940533302ACb`
+- **PoolDeployer**: `0xd7cB0E0692f2D55A17bA81c1fE5501D66774fC4A` ⚠️ **IMPORTANT for swaps!**
 - PositionManager: `0x69D57B9D705eaD73a5d2f2476C30c55bD755cc2F`
 - Router: `0x3012E9049d05B4B5369D690114D5A5861EbB85cb`
 - QuoterV2: `0xa77aD9f635a3FB3bCCC5E6d1A87cB269746Aba17`
 - Quoter: `0x03f8B4b140249Dc7B2503C928E7258CCe1d91F1A`
+
+> **Note**: QuickSwap uses Algebra Protocol. The SwapRouter's `exactInputSingle` function requires a `deployer` parameter which must be set to the **AlgebraPoolDeployer** address (NOT the factory address). Using the wrong address will cause swaps to fail with callback validation errors.
 
 **Lotus Testnet:**
 - Factory: `0x17E1ebf15BE528b179d34148fB9aB2466555F605`

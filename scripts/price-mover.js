@@ -17,10 +17,14 @@ const { ethers } = require("hardhat");
 const config = require("../testnet-config.json");
 
 // ABI fragments for the DEX routers
+// QuickSwap (Algebra) requires 'deployer' parameter - this is the AlgebraPoolDeployer address
 const QUICKSWAP_ROUTER_ABI = [
-  "function exactInputSingle((address tokenIn, address tokenOut, address recipient, uint256 deadline, uint256 amountIn, uint256 amountOutMinimum, uint160 limitSqrtPrice)) external payable returns (uint256 amountOut)",
-  "function exactOutputSingle((address tokenIn, address tokenOut, uint256 fee, address recipient, uint256 deadline, uint256 amountOut, uint256 amountInMaximum, uint160 limitSqrtPrice)) external payable returns (uint256 amountIn)"
+  "function exactInputSingle((address tokenIn, address tokenOut, address deployer, address recipient, uint256 deadline, uint256 amountIn, uint256 amountOutMinimum, uint160 limitSqrtPrice)) external payable returns (uint256 amountOut)",
+  "function exactOutputSingle((address tokenIn, address tokenOut, address deployer, uint256 fee, address recipient, uint256 deadline, uint256 amountOut, uint256 amountInMaximum, uint160 limitSqrtPrice)) external payable returns (uint256 amountIn)"
 ];
+
+// QuickSwap AlgebraPoolDeployer address (NOT the factory!)
+const QUICKSWAP_POOL_DEPLOYER = "0xd7cB0E0692f2D55A17bA81c1fE5501D66774fC4A";
 
 const LOTUS_ROUTER_ABI = [
   "function exactInputSingle((address tokenIn, address tokenOut, uint24 fee, address recipient, uint256 deadline, uint256 amountIn, uint256 amountOutMinimum, uint160 sqrtPriceLimitX96)) external payable returns (uint256 amountOut)",
@@ -104,7 +108,8 @@ class PriceMover {
   }
 
   /**
-   * Execute swap on QuickSwap
+   * Execute swap on QuickSwap (Algebra protocol)
+   * Note: Algebra router requires a 'deployer' parameter (AlgebraPoolDeployer address)
    */
   async swapQuickSwap(tokenIn, tokenOut, amountIn, minAmountOut = 0) {
     console.log("\n--- QuickSwap Swap ---");
@@ -116,6 +121,7 @@ class PriceMover {
     const params = {
       tokenIn: tokenIn,
       tokenOut: tokenOut,
+      deployer: QUICKSWAP_POOL_DEPLOYER, // AlgebraPoolDeployer - required by Algebra router
       recipient: await this.signer.getAddress(),
       deadline: Math.floor(Date.now() / 1000) + 3600, // 1 hour
       amountIn: amountIn,
@@ -124,7 +130,7 @@ class PriceMover {
     };
 
     try {
-      const tx = await this.quickswapRouter.exactInputSingle(params);
+      const tx = await this.quickswapRouter.exactInputSingle(params, { gasLimit: 500000 });
       const receipt = await tx.wait();
       console.log(`✓ QuickSwap swap successful! Tx: ${receipt.transactionHash}`);
       return receipt;

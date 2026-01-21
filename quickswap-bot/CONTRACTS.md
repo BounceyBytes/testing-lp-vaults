@@ -44,13 +44,16 @@ This document lists all relevant contract addresses and ABIs for interacting wit
 
 ### SwapRouter Interface
 
-The bot primarily uses the SwapRouter for executing trades:
+The bot primarily uses the SwapRouter for executing trades.
+
+**IMPORTANT**: The Algebra SwapRouter requires a `deployer` parameter which is the **AlgebraPoolDeployer** address (`0xd7cB0E0692f2D55A17bA81c1fE5501D66774fC4A`), NOT the factory address!
 
 ```solidity
 interface ISwapRouter {
     struct ExactInputSingleParams {
         address tokenIn;
         address tokenOut;
+        address deployer;         // AlgebraPoolDeployer address - REQUIRED!
         address recipient;
         uint256 deadline;
         uint256 amountIn;
@@ -64,6 +67,8 @@ interface ISwapRouter {
         returns (uint256 amountOut);
 }
 ```
+
+> **Note**: The `deployer` parameter is used by the router to identify which pool deployer created the pool. Using the wrong address (e.g., the factory address) will cause swaps to fail with callback validation errors.
 
 ### AlgebraPool Interface
 

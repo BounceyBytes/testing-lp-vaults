@@ -113,12 +113,17 @@ export class QuickswapClient {
   async getQuote(
     tokenIn: string,
     tokenOut: string,
-    amountIn: bigint
+    amountIn: bigint,
+    deployer?: string
   ): Promise<{ amountOut: bigint; sqrtPriceX96After: bigint }> {
+    const deployerAddress = deployer || config.contracts.poolDeployer;
+    
     try {
+      // Try with deployer parameter first (newer Algebra versions)
       const result = await this.quoterV2.quoteExactInputSingle.staticCall(
         tokenIn,
         tokenOut,
+        deployerAddress,
         amountIn,
         0 // limitSqrtPrice = 0 means no limit
       );
@@ -128,8 +133,23 @@ export class QuickswapClient {
         sqrtPriceX96After: result.sqrtPriceX96After,
       };
     } catch (error) {
-      logger.error('Error getting quote:', error);
-      throw error;
+      // Fallback: try without deployer parameter (older Algebra versions)
+      logger.debug('Retrying quote without deployer parameter...');
+      try {
+        const result = await this.quoterV2.quoteExactInputSingleWithoutDeployer.staticCall(
+          tokenIn,
+          tokenOut,
+          amountIn,
+          0
+        );
+        return {
+          amountOut: result.amountOut,
+          sqrtPriceX96After: result.sqrtPriceX96After,
+        };
+      } catch (fallbackError) {
+        logger.error('Error getting quote:', error);
+        throw error;
+      }
     }
   }
 
