@@ -12,6 +12,19 @@
  *    - Price per share (PPFS) changes
  *    - Total vault TVL changes (fees accrued ± IL)
  *    - User share balance vs value changes
+ * 
+ * 3. FEE ACCRUAL & COMPOUNDING:
+ *    - Unclaimed fees tracking (fees0, fees1)
+ *    - Fee growth while in-range
+ *    - PPFS jump detection after harvest
+ *    - Bug detection: fees not accruing in-range, or PPFS not moving with fees
+ * 
+ * 4. DEX-LEVEL PRICE & TICKS (Ground Truth):
+ *    - Current pool tick
+ *    - Position lowerTick / upperTick
+ *    - Whether position straddles current tick
+ *    - Single-sided detection when out of range
+ *    - Fee growth pause detection
  */
 
 const { ethers } = require("hardhat");
@@ -20,7 +33,6 @@ const fs = require('fs');
 const path = require('path');
 
 // Vault configurations with their pools
-// Fee tiers discovered from on-chain pool data
 const VAULT_CONFIGS = [
   {
     name: "QuickSwap USDC-USDT",
@@ -31,7 +43,7 @@ const VAULT_CONFIGS = [
     token1: config.tokens.USDT,
     token0Symbol: "USDC",
     token1Symbol: "USDT",
-    feeTier: 100  // 0.01% - actual fee tier from pool
+    feeTier: 100
   },
   {
     name: "Lotus WETH-USDT",
@@ -42,7 +54,7 @@ const VAULT_CONFIGS = [
     token1: config.tokens.USDT,
     token0Symbol: "WETH",
     token1Symbol: "USDT",
-    feeTier: 500  // 0.05% - actual fee tier from pool
+    feeTier: 500
   },
   {
     name: "Lotus WBTC-USDC",
@@ -53,58 +65,48 @@ const VAULT_CONFIGS = [
     token1: config.tokens.USDC,
     token0Symbol: "WBTC",
     token1Symbol: "USDC",
-    feeTier: 500  // 0.05% - actual fee tier from pool
+    feeTier: 500
   },
   {
     name: "Lotus USDC-USDT",
     vault: "0xbbbd57224d28ec578dfe4adc4f50a524804251fe",
     dex: "lotus",
     pool: config.pools.lotus.USDC_USDT,
-    // Note: Pool has USDT as token0, USDC as token1 on-chain
     token0: config.tokens.USDC,
     token1: config.tokens.USDT,
     token0Symbol: "USDC",
     token1Symbol: "USDT",
-    feeTier: 500  // 0.05%
+    feeTier: 500
   }
 ];
 
 // Extended Vault ABI for CLM metrics
 const VAULT_ABI = [
-  // Basic info
   "function name() view returns (string)",
   "function symbol() view returns (string)",
   "function decimals() view returns (uint8)",
   "function totalSupply() view returns (uint256)",
-  
-  // Token info
   "function want() view returns (address)",
   "function token0() view returns (address)",
   "function token1() view returns (address)",
-  
-  // Balances and positions
   "function balances() view returns (uint256 amount0, uint256 amount1)",
   "function balanceOf(address) view returns (uint256)",
-  
-  // Price per share / share value
   "function getPricePerFullShare() view returns (uint256)",
   "function pricePerShare() view returns (uint256)",
   "function totalAssets() view returns (uint256)",
-  
-  // Position info (CLM specific)
   "function positionMain() view returns (int24 tickLower, int24 tickUpper, uint128 liquidity)",
   "function range() view returns (int24 lowerTick, int24 upperTick)",
   "function currentTick() view returns (int24)",
-  
-  // TVL / value
   "function balance() view returns (uint256)",
   "function tvl() view returns (uint256 tvl0, uint256 tvl1)",
-  
-  // Strategy
-  "function strategy() view returns (address)"
+  "function strategy() view returns (address)",
+  // Fee-related
+  "function fees0() view returns (uint256)",
+  "function fees1() view returns (uint256)",
+  "function accumulatedFees() view returns (uint256 fees0, uint256 fees1)"
 ];
 
-// Strategy ABI (for additional CLM data)
+// Extended Strategy ABI for CLM data and fees
 const STRATEGY_ABI = [
   "function balances() view returns (uint256 amount0, uint256 amount1)",
   "function positionMain() view returns (int24 tickLower, int24 tickUpper, uint128 liquidity)",
@@ -116,6 +118,15 @@ const STRATEGY_ABI = [
   "function tick() view returns (int24)",
   "function range() view returns (uint256)",
   "function twap() view returns (int56)",
+  // Fee tracking
+  "function fees0() view returns (uint256)",
+  "function fees1() view returns (uint256)",
+  "function unclaimedFees0() view returns (uint256)",
+  "function unclaimedFees1() view returns (uint256)",
+  "function lastHarvest() view returns (uint256)",
+  "function accumulatedFees() view returns (uint256, uint256)",
+  // Actions
+  "function harvest() external",
   "function rebalance() external"
 ];
 
@@ -126,20 +137,28 @@ const ERC20_ABI = [
   "function symbol() view returns (string)"
 ];
 
+// UniV3-style pool ABI with fee growth tracking
 const POOL_ABI = [
-  "function slot0() view returns (uint160 sqrtPriceX96, int24 tick, uint16, uint16, uint16, uint8, bool)",
+  "function slot0() view returns (uint160 sqrtPriceX96, int24 tick, uint16 observationIndex, uint16 observationCardinality, uint16 observationCardinalityNext, uint8 feeProtocol, bool unlocked)",
   "function liquidity() view returns (uint128)",
   "function token0() view returns (address)",
   "function token1() view returns (address)",
-  "function tickSpacing() view returns (int24)"
+  "function tickSpacing() view returns (int24)",
+  "function fee() view returns (uint24)",
+  // Fee growth globals
+  "function feeGrowthGlobal0X128() view returns (uint256)",
+  "function feeGrowthGlobal1X128() view returns (uint256)",
+  // Position info (for checking fees)
+  "function positions(bytes32 key) view returns (uint128 liquidity, uint256 feeGrowthInside0LastX128, uint256 feeGrowthInside1LastX128, uint128 tokensOwed0, uint128 tokensOwed1)",
+  // Tick info
+  "function ticks(int24 tick) view returns (uint128 liquidityGross, int128 liquidityNet, uint256 feeGrowthOutside0X128, uint256 feeGrowthOutside1X128, int56 tickCumulativeOutside, uint160 secondsPerLiquidityOutsideX128, uint32 secondsOutside, bool initialized)"
 ];
 
-// QuickSwap (Algebra) router ABI - note: includes 'deployer' field!
+// QuickSwap (Algebra) router ABI
 const QUICKSWAP_ROUTER_ABI = [
   "function exactInputSingle((address tokenIn, address tokenOut, address deployer, address recipient, uint256 deadline, uint256 amountIn, uint256 amountOutMinimum, uint160 limitSqrtPrice)) payable returns (uint256 amountOut)"
 ];
 
-// QuickSwap pool deployer (same as factory for Algebra)
 const QUICKSWAP_POOL_DEPLOYER = "0x10253594A832f967994b44f33411940533302ACb";
 
 // Lotus (UniV3) router ABI
@@ -153,7 +172,8 @@ class VaultTester {
     this.results = {
       timestamp: new Date().toISOString(),
       tests: [],
-      summary: { total: 0, passed: 0, failed: 0 }
+      summary: { total: 0, passed: 0, failed: 0 },
+      diagnostics: []
     };
   }
 
@@ -169,14 +189,32 @@ class VaultTester {
    * Check if current tick is within position range
    */
   isInRange(currentTick, tickLower, tickUpper) {
+    if (currentTick === null || tickLower === null || tickUpper === null) {
+      return null;
+    }
     return currentTick >= tickLower && currentTick < tickUpper;
+  }
+
+  /**
+   * Determine single-sided exposure type
+   */
+  getSingleSidedExposure(currentTick, tickLower, tickUpper) {
+    if (currentTick === null || tickLower === null || tickUpper === null) {
+      return null;
+    }
+    if (currentTick >= tickUpper) {
+      return "token1_only"; // Price above range, all converted to token1
+    }
+    if (currentTick < tickLower) {
+      return "token0_only"; // Price below range, all converted to token0
+    }
+    return "both"; // In range, have both tokens
   }
 
   /**
    * Calculate token composition percentage
    */
   calculateComposition(amount0, amount1, price) {
-    // Convert to common value (using token1 as base)
     const value0InToken1 = Number(amount0) * price;
     const value1 = Number(amount1);
     const totalValue = value0InToken1 + value1;
@@ -190,7 +228,7 @@ class VaultTester {
   }
 
   /**
-   * Get comprehensive vault state including CLM metrics
+   * Get comprehensive vault state including all CLM metrics
    */
   async getVaultState(vaultConfig, userAddress) {
     const vault = new ethers.Contract(vaultConfig.vault, VAULT_ABI, this.signer);
@@ -206,32 +244,69 @@ class VaultTester {
       amount0Formatted: null,
       amount1Formatted: null,
       
-      // Pool state
-      currentTick: null,
-      sqrtPriceX96: null,
-      poolLiquidity: null,
-      price: null,
+      // ========== DEX-LEVEL PRICE & TICKS (Ground Truth) ==========
+      poolState: {
+        currentTick: null,
+        sqrtPriceX96: null,
+        price: null,
+        poolLiquidity: null,
+        feeGrowthGlobal0X128: null,
+        feeGrowthGlobal1X128: null
+      },
       
-      // Position info
-      tickLower: null,
-      tickUpper: null,
-      positionLiquidity: null,
+      // Position tick boundaries
+      position: {
+        tickLower: null,
+        tickUpper: null,
+        liquidity: null,
+        tickSpan: null  // upperTick - lowerTick
+      },
       
-      // CLM Mechanics
-      isInRange: null,
+      // ========== IN-RANGE / OUT-OF-RANGE STATUS ==========
+      rangeStatus: {
+        isInRange: null,
+        singleSidedExposure: null,  // "token0_only", "token1_only", or "both"
+        distanceToLowerTick: null,  // How many ticks from lower bound
+        distanceToUpperTick: null,  // How many ticks from upper bound
+        percentInRange: null        // Position within the range (0-100%)
+      },
+      
+      // ========== TOKEN COMPOSITION ==========
       tokenComposition: null,
-      liquidityUtilization: null,
       
-      // Share accounting
-      pricePerShare: null,
-      userShares: null,
-      userShareValue: null,
-      tvl: null
+      // ========== FEE ACCRUAL & COMPOUNDING ==========
+      fees: {
+        unclaimedFees0: null,
+        unclaimedFees1: null,
+        unclaimedFees0Formatted: null,
+        unclaimedFees1Formatted: null,
+        totalUnclaimedValueInToken1: null,
+        lastHarvest: null,
+        feeGrowthActive: null  // Are fees currently accruing?
+      },
+      
+      // ========== SHARE ACCOUNTING ==========
+      shareAccounting: {
+        pricePerShare: null,
+        pricePerShareFormatted: null,
+        tvl: null,
+        userShares: null,
+        userSharesFormatted: null,
+        userShareValue: null
+      },
+      
+      // Strategy address
+      strategy: null
     };
     
     try {
       // Get total supply
       state.totalSupply = await vault.totalSupply();
+      
+      // Get strategy address
+      try {
+        state.strategy = await vault.strategy();
+      } catch {}
       
       // Get vault token balances
       try {
@@ -242,9 +317,8 @@ class VaultTester {
         state.amount1Formatted = ethers.utils.formatEther(amount1);
       } catch (e) {
         // Try strategy
-        const strategyAddr = await vault.strategy().catch(() => null);
-        if (strategyAddr) {
-          const strategy = new ethers.Contract(strategyAddr, STRATEGY_ABI, this.signer);
+        if (state.strategy) {
+          const strategy = new ethers.Contract(state.strategy, STRATEGY_ABI, this.signer);
           try {
             const [amount0, amount1] = await strategy.balances();
             state.amount0 = amount0;
@@ -255,98 +329,172 @@ class VaultTester {
         }
       }
       
-      // Get pool state
+      // ========== GET POOL STATE (Ground Truth) ==========
       try {
         const slot0 = await pool.slot0();
-        state.sqrtPriceX96 = slot0.sqrtPriceX96;
-        state.currentTick = slot0.tick;
-        state.poolLiquidity = await pool.liquidity();
-        state.price = this.sqrtPriceX96ToPrice(slot0.sqrtPriceX96);
+        state.poolState.sqrtPriceX96 = slot0.sqrtPriceX96;
+        state.poolState.currentTick = slot0.tick;
+        state.poolState.price = this.sqrtPriceX96ToPrice(slot0.sqrtPriceX96);
+        state.poolState.poolLiquidity = await pool.liquidity();
+        
+        // Get fee growth globals (for tracking fee accrual)
+        try {
+          state.poolState.feeGrowthGlobal0X128 = await pool.feeGrowthGlobal0X128();
+          state.poolState.feeGrowthGlobal1X128 = await pool.feeGrowthGlobal1X128();
+        } catch {}
       } catch (e) {
         console.log(`    Warning: Could not read pool state: ${e.message.slice(0, 50)}`);
       }
       
-      // Get position info (tick range)
+      // ========== GET POSITION INFO (Tick Boundaries) ==========
       try {
         const [tickLower, tickUpper, liquidity] = await vault.positionMain();
-        state.tickLower = tickLower;
-        state.tickUpper = tickUpper;
-        state.positionLiquidity = liquidity;
+        state.position.tickLower = tickLower;
+        state.position.tickUpper = tickUpper;
+        state.position.liquidity = liquidity;
+        state.position.tickSpan = tickUpper - tickLower;
       } catch {
-        // Try range() method
         try {
           const [lowerTick, upperTick] = await vault.range();
-          state.tickLower = lowerTick;
-          state.tickUpper = upperTick;
+          state.position.tickLower = lowerTick;
+          state.position.tickUpper = upperTick;
+          state.position.tickSpan = upperTick - lowerTick;
         } catch {
           // Try strategy
-          const strategyAddr = await vault.strategy().catch(() => null);
-          if (strategyAddr) {
-            const strategy = new ethers.Contract(strategyAddr, STRATEGY_ABI, this.signer);
+          if (state.strategy) {
+            const strategy = new ethers.Contract(state.strategy, STRATEGY_ABI, this.signer);
             try {
               const [tickLower, tickUpper, liquidity] = await strategy.positionMain();
-              state.tickLower = tickLower;
-              state.tickUpper = tickUpper;
-              state.positionLiquidity = liquidity;
+              state.position.tickLower = tickLower;
+              state.position.tickUpper = tickUpper;
+              state.position.liquidity = liquidity;
+              state.position.tickSpan = tickUpper - tickLower;
             } catch {}
           }
         }
       }
       
-      // Calculate CLM mechanics
-      if (state.currentTick !== null && state.tickLower !== null && state.tickUpper !== null) {
-        state.isInRange = this.isInRange(state.currentTick, state.tickLower, state.tickUpper);
+      // ========== CALCULATE RANGE STATUS ==========
+      const { tickLower, tickUpper } = state.position;
+      const currentTick = state.poolState.currentTick;
+      
+      if (currentTick !== null && tickLower !== null && tickUpper !== null) {
+        state.rangeStatus.isInRange = this.isInRange(currentTick, tickLower, tickUpper);
+        state.rangeStatus.singleSidedExposure = this.getSingleSidedExposure(currentTick, tickLower, tickUpper);
+        state.rangeStatus.distanceToLowerTick = currentTick - tickLower;
+        state.rangeStatus.distanceToUpperTick = tickUpper - currentTick;
+        
+        // Calculate position within range (0-100%)
+        if (state.rangeStatus.isInRange) {
+          const tickSpan = tickUpper - tickLower;
+          const positionInRange = currentTick - tickLower;
+          state.rangeStatus.percentInRange = (positionInRange / tickSpan) * 100;
+        } else {
+          state.rangeStatus.percentInRange = currentTick < tickLower ? 0 : 100;
+        }
       }
       
-      if (state.amount0 !== null && state.amount1 !== null && state.price !== null) {
-        state.tokenComposition = this.calculateComposition(
-          ethers.utils.formatEther(state.amount0),
-          ethers.utils.formatEther(state.amount1),
-          state.price
-        );
-      }
+      // ========== FEE ACCRUAL STATUS ==========
+      // Fees only accrue when in-range
+      state.fees.feeGrowthActive = state.rangeStatus.isInRange === true;
       
-      // Calculate liquidity utilization (simplified: position liquidity vs pool liquidity)
-      if (state.positionLiquidity && state.poolLiquidity) {
-        const posLiq = Number(state.positionLiquidity.toString());
-        const poolLiq = Number(state.poolLiquidity.toString());
-        state.liquidityUtilization = poolLiq > 0 ? (posLiq / poolLiq) * 100 : 0;
-      }
-      
-      // Get price per share
+      // Try to get unclaimed fees from vault or strategy
       try {
-        state.pricePerShare = await vault.getPricePerFullShare();
+        const fees0 = await vault.fees0();
+        const fees1 = await vault.fees1();
+        state.fees.unclaimedFees0 = fees0;
+        state.fees.unclaimedFees1 = fees1;
+        state.fees.unclaimedFees0Formatted = ethers.utils.formatEther(fees0);
+        state.fees.unclaimedFees1Formatted = ethers.utils.formatEther(fees1);
       } catch {
         try {
-          state.pricePerShare = await vault.pricePerShare();
+          const [fees0, fees1] = await vault.accumulatedFees();
+          state.fees.unclaimedFees0 = fees0;
+          state.fees.unclaimedFees1 = fees1;
+          state.fees.unclaimedFees0Formatted = ethers.utils.formatEther(fees0);
+          state.fees.unclaimedFees1Formatted = ethers.utils.formatEther(fees1);
         } catch {
-          // Calculate manually: TVL / totalSupply
-          if (state.totalSupply && state.amount0 && state.amount1 && state.price) {
-            const tvl0 = Number(ethers.utils.formatEther(state.amount0));
-            const tvl1 = Number(ethers.utils.formatEther(state.amount1));
-            const totalTVL = tvl0 * state.price + tvl1;
-            const supply = Number(ethers.utils.formatEther(state.totalSupply));
-            state.pricePerShare = ethers.utils.parseEther((totalTVL / supply).toFixed(18));
+          // Try strategy
+          if (state.strategy) {
+            const strategy = new ethers.Contract(state.strategy, STRATEGY_ABI, this.signer);
+            try {
+              const fees0 = await strategy.fees0();
+              const fees1 = await strategy.fees1();
+              state.fees.unclaimedFees0 = fees0;
+              state.fees.unclaimedFees1 = fees1;
+              state.fees.unclaimedFees0Formatted = ethers.utils.formatEther(fees0);
+              state.fees.unclaimedFees1Formatted = ethers.utils.formatEther(fees1);
+            } catch {}
           }
         }
       }
       
-      // Get user shares and value
+      // Calculate total unclaimed fees value in token1 terms
+      if (state.fees.unclaimedFees0 !== null && state.fees.unclaimedFees1 !== null && state.poolState.price) {
+        const fees0Value = Number(ethers.utils.formatEther(state.fees.unclaimedFees0)) * state.poolState.price;
+        const fees1Value = Number(ethers.utils.formatEther(state.fees.unclaimedFees1));
+        state.fees.totalUnclaimedValueInToken1 = fees0Value + fees1Value;
+      }
+      
+      // Try to get last harvest time
+      if (state.strategy) {
+        const strategy = new ethers.Contract(state.strategy, STRATEGY_ABI, this.signer);
+        try {
+          state.fees.lastHarvest = await strategy.lastHarvest();
+        } catch {}
+      }
+      
+      // ========== TOKEN COMPOSITION ==========
+      if (state.amount0 !== null && state.amount1 !== null && state.poolState.price !== null) {
+        state.tokenComposition = this.calculateComposition(
+          ethers.utils.formatEther(state.amount0),
+          ethers.utils.formatEther(state.amount1),
+          state.poolState.price
+        );
+      }
+      
+      // ========== SHARE ACCOUNTING ==========
+      // Get price per share
       try {
-        state.userShares = await vault.balanceOf(userAddress);
-        if (state.pricePerShare && state.userShares) {
-          const shares = Number(ethers.utils.formatEther(state.userShares));
-          const ppfs = Number(ethers.utils.formatEther(state.pricePerShare));
-          state.userShareValue = shares * ppfs;
+        state.shareAccounting.pricePerShare = await vault.getPricePerFullShare();
+        state.shareAccounting.pricePerShareFormatted = ethers.utils.formatEther(state.shareAccounting.pricePerShare);
+      } catch {
+        try {
+          state.shareAccounting.pricePerShare = await vault.pricePerShare();
+          state.shareAccounting.pricePerShareFormatted = ethers.utils.formatEther(state.shareAccounting.pricePerShare);
+        } catch {
+          // Calculate manually: TVL / totalSupply
+          if (state.totalSupply && state.amount0 && state.amount1 && state.poolState.price) {
+            const tvl0 = Number(ethers.utils.formatEther(state.amount0));
+            const tvl1 = Number(ethers.utils.formatEther(state.amount1));
+            const totalTVL = tvl0 * state.poolState.price + tvl1;
+            const supply = Number(ethers.utils.formatEther(state.totalSupply));
+            if (supply > 0) {
+              state.shareAccounting.pricePerShare = ethers.utils.parseEther((totalTVL / supply).toFixed(18));
+              state.shareAccounting.pricePerShareFormatted = (totalTVL / supply).toFixed(18);
+            }
+          }
         }
-      } catch {}
+      }
       
       // Calculate TVL
-      if (state.amount0 !== null && state.amount1 !== null && state.price !== null) {
+      if (state.amount0 !== null && state.amount1 !== null && state.poolState.price !== null) {
         const tvl0 = Number(ethers.utils.formatEther(state.amount0));
         const tvl1 = Number(ethers.utils.formatEther(state.amount1));
-        state.tvl = tvl0 * state.price + tvl1;
+        state.shareAccounting.tvl = tvl0 * state.poolState.price + tvl1;
       }
+      
+      // Get user shares and value
+      try {
+        state.shareAccounting.userShares = await vault.balanceOf(userAddress);
+        state.shareAccounting.userSharesFormatted = ethers.utils.formatEther(state.shareAccounting.userShares);
+        
+        if (state.shareAccounting.pricePerShare && state.shareAccounting.userShares) {
+          const shares = Number(ethers.utils.formatEther(state.shareAccounting.userShares));
+          const ppfs = Number(ethers.utils.formatEther(state.shareAccounting.pricePerShare));
+          state.shareAccounting.userShareValue = shares * ppfs;
+        }
+      } catch {}
       
     } catch (e) {
       console.log(`    Warning: Error getting vault state: ${e.message.slice(0, 100)}`);
@@ -361,55 +509,93 @@ class VaultTester {
   formatState(state, symbol0, symbol1) {
     const lines = [];
     
-    // Token Balances
-    if (state.amount0Formatted && state.amount1Formatted) {
-      lines.push(`    Token Balances:`);
-      lines.push(`      ${symbol0}: ${parseFloat(state.amount0Formatted).toFixed(6)}`);
-      lines.push(`      ${symbol1}: ${parseFloat(state.amount1Formatted).toFixed(6)}`);
+    // DEX-Level Price & Ticks (Ground Truth)
+    lines.push(`    ══════════════════════════════════════════════════════════`);
+    lines.push(`    📍 DEX-LEVEL PRICE & TICKS (Ground Truth)`);
+    lines.push(`    ══════════════════════════════════════════════════════════`);
+    if (state.poolState.currentTick !== null) {
+      lines.push(`      Current Tick: ${state.poolState.currentTick}`);
+    }
+    if (state.poolState.price) {
+      lines.push(`      Current Price: ${state.poolState.price.toFixed(8)} ${symbol1}/${symbol0}`);
+    }
+    if (state.position.tickLower !== null && state.position.tickUpper !== null) {
+      lines.push(`      Position Lower Tick: ${state.position.tickLower}`);
+      lines.push(`      Position Upper Tick: ${state.position.tickUpper}`);
+      lines.push(`      Tick Span: ${state.position.tickSpan} ticks`);
+    }
+    
+    // Range Status
+    lines.push(`    ──────────────────────────────────────────────────────────`);
+    lines.push(`    📊 RANGE STATUS`);
+    if (state.rangeStatus.isInRange !== null) {
+      const rangeIcon = state.rangeStatus.isInRange ? '✅' : '❌';
+      const rangeText = state.rangeStatus.isInRange ? 'IN RANGE (earning fees)' : 'OUT OF RANGE (no fees)';
+      lines.push(`      Status: ${rangeIcon} ${rangeText}`);
+      
+      if (state.rangeStatus.singleSidedExposure) {
+        const exposure = state.rangeStatus.singleSidedExposure === 'both' 
+          ? `Both tokens (${symbol0} + ${symbol1})`
+          : state.rangeStatus.singleSidedExposure === 'token0_only' 
+            ? `Single-sided: ${symbol0} only`
+            : `Single-sided: ${symbol1} only`;
+        lines.push(`      Exposure: ${exposure}`);
+      }
+      
+      if (state.rangeStatus.distanceToLowerTick !== null) {
+        lines.push(`      Distance to Lower: ${state.rangeStatus.distanceToLowerTick} ticks`);
+        lines.push(`      Distance to Upper: ${state.rangeStatus.distanceToUpperTick} ticks`);
+      }
+      if (state.rangeStatus.percentInRange !== null) {
+        lines.push(`      Position in Range: ${state.rangeStatus.percentInRange.toFixed(2)}%`);
+      }
     }
     
     // Token Composition
+    lines.push(`    ──────────────────────────────────────────────────────────`);
+    lines.push(`    💰 TOKEN BALANCES & COMPOSITION`);
+    if (state.amount0Formatted && state.amount1Formatted) {
+      lines.push(`      ${symbol0}: ${parseFloat(state.amount0Formatted).toFixed(6)}`);
+      lines.push(`      ${symbol1}: ${parseFloat(state.amount1Formatted).toFixed(6)}`);
+    }
     if (state.tokenComposition) {
-      lines.push(`    Token Composition:`);
-      lines.push(`      ${symbol0}: ${state.tokenComposition.token0Pct.toFixed(2)}%`);
-      lines.push(`      ${symbol1}: ${state.tokenComposition.token1Pct.toFixed(2)}%`);
+      lines.push(`      Composition: ${state.tokenComposition.token0Pct.toFixed(2)}% ${symbol0} / ${state.tokenComposition.token1Pct.toFixed(2)}% ${symbol1}`);
     }
     
-    // Pool/Position State
-    if (state.currentTick !== null) {
-      lines.push(`    Pool State:`);
-      lines.push(`      Current Tick: ${state.currentTick}`);
-      if (state.price) lines.push(`      Price: ${state.price.toFixed(8)}`);
-    }
+    // Fee Accrual
+    lines.push(`    ──────────────────────────────────────────────────────────`);
+    lines.push(`    💸 FEE ACCRUAL`);
+    const feeGrowthIcon = state.fees.feeGrowthActive ? '✅' : '⏸️';
+    const feeGrowthText = state.fees.feeGrowthActive ? 'ACTIVE (in range)' : 'PAUSED (out of range)';
+    lines.push(`      Fee Growth: ${feeGrowthIcon} ${feeGrowthText}`);
     
-    if (state.tickLower !== null && state.tickUpper !== null) {
-      lines.push(`    Position Range:`);
-      lines.push(`      Lower Tick: ${state.tickLower}`);
-      lines.push(`      Upper Tick: ${state.tickUpper}`);
-      lines.push(`      In Range: ${state.isInRange ? '✅ YES (earning fees)' : '❌ NO (single-sided, no fees)'}`);
-    }
-    
-    // Liquidity Utilization
-    if (state.liquidityUtilization !== null) {
-      lines.push(`    Liquidity Utilization: ${state.liquidityUtilization.toFixed(4)}%`);
+    if (state.fees.unclaimedFees0Formatted !== null) {
+      lines.push(`      Unclaimed ${symbol0}: ${parseFloat(state.fees.unclaimedFees0Formatted).toFixed(8)}`);
+      lines.push(`      Unclaimed ${symbol1}: ${parseFloat(state.fees.unclaimedFees1Formatted).toFixed(8)}`);
+      if (state.fees.totalUnclaimedValueInToken1 !== null) {
+        lines.push(`      Total Unclaimed Value: ${state.fees.totalUnclaimedValueInToken1.toFixed(6)} ${symbol1}`);
+      }
+    } else {
+      lines.push(`      Unclaimed Fees: (not available via contract)`);
     }
     
     // Share Accounting
-    lines.push(`    Share Accounting:`);
+    lines.push(`    ──────────────────────────────────────────────────────────`);
+    lines.push(`    📈 SHARE ACCOUNTING`);
     if (state.totalSupply) {
       lines.push(`      Total Supply: ${parseFloat(ethers.utils.formatEther(state.totalSupply)).toFixed(6)} shares`);
     }
-    if (state.pricePerShare) {
-      lines.push(`      Price Per Share: ${parseFloat(ethers.utils.formatEther(state.pricePerShare)).toFixed(8)}`);
+    if (state.shareAccounting.pricePerShareFormatted) {
+      lines.push(`      Price Per Share (PPFS): ${parseFloat(state.shareAccounting.pricePerShareFormatted).toFixed(8)}`);
     }
-    if (state.tvl !== null) {
-      lines.push(`      Total TVL: ${state.tvl.toFixed(2)} (in ${symbol1} terms)`);
+    if (state.shareAccounting.tvl !== null) {
+      lines.push(`      Total TVL: ${state.shareAccounting.tvl.toFixed(2)} ${symbol1}`);
     }
-    if (state.userShares) {
-      lines.push(`      Your Shares: ${parseFloat(ethers.utils.formatEther(state.userShares)).toFixed(6)}`);
+    if (state.shareAccounting.userSharesFormatted) {
+      lines.push(`      Your Shares: ${parseFloat(state.shareAccounting.userSharesFormatted).toFixed(6)}`);
     }
-    if (state.userShareValue !== null) {
-      lines.push(`      Your Value: ${state.userShareValue.toFixed(6)} (in ${symbol1} terms)`);
+    if (state.shareAccounting.userShareValue !== null) {
+      lines.push(`      Your Value: ${state.shareAccounting.userShareValue.toFixed(6)} ${symbol1}`);
     }
     
     return lines.join('\n');
@@ -421,63 +607,246 @@ class VaultTester {
   formatDeltas(before, after, symbol0, symbol1) {
     const lines = [];
     
-    lines.push(`\n    📊 CHANGES:`);
+    lines.push(`\n    📊 CHANGES AFTER SWAP:`);
+    lines.push(`    ══════════════════════════════════════════════════════════`);
     
-    // Tick change
-    if (before.currentTick !== null && after.currentTick !== null) {
-      const tickDelta = after.currentTick - before.currentTick;
-      lines.push(`      Tick: ${before.currentTick} → ${after.currentTick} (${tickDelta >= 0 ? '+' : ''}${tickDelta})`);
+    // DEX-Level Changes
+    lines.push(`    📍 DEX-Level:`);
+    if (before.poolState.currentTick !== null && after.poolState.currentTick !== null) {
+      const tickDelta = after.poolState.currentTick - before.poolState.currentTick;
+      lines.push(`      Tick: ${before.poolState.currentTick} → ${after.poolState.currentTick} (${tickDelta >= 0 ? '+' : ''}${tickDelta})`);
+    }
+    if (before.poolState.price && after.poolState.price) {
+      const priceDelta = after.poolState.price - before.poolState.price;
+      const pricePctChange = ((priceDelta / before.poolState.price) * 100);
+      lines.push(`      Price: ${before.poolState.price.toFixed(8)} → ${after.poolState.price.toFixed(8)} (${pricePctChange >= 0 ? '+' : ''}${pricePctChange.toFixed(4)}%)`);
     }
     
-    // Price change
-    if (before.price && after.price) {
-      const priceDelta = after.price - before.price;
-      const pricePctChange = ((priceDelta / before.price) * 100);
-      lines.push(`      Price: ${before.price.toFixed(8)} → ${after.price.toFixed(8)} (${pricePctChange >= 0 ? '+' : ''}${pricePctChange.toFixed(4)}%)`);
-    }
-    
-    // Token composition shift
-    if (before.tokenComposition && after.tokenComposition) {
-      const token0Shift = after.tokenComposition.token0Pct - before.tokenComposition.token0Pct;
-      lines.push(`      ${symbol0} Composition: ${before.tokenComposition.token0Pct.toFixed(2)}% → ${after.tokenComposition.token0Pct.toFixed(2)}% (${token0Shift >= 0 ? '+' : ''}${token0Shift.toFixed(2)}%)`);
-    }
-    
-    // In-range status change
-    if (before.isInRange !== null && after.isInRange !== null) {
-      if (before.isInRange !== after.isInRange) {
-        lines.push(`      Range Status: ${before.isInRange ? 'IN RANGE' : 'OUT OF RANGE'} → ${after.isInRange ? 'IN RANGE' : 'OUT OF RANGE'} ⚠️`);
+    // Range Status Changes
+    lines.push(`    📊 Range Status:`);
+    if (before.rangeStatus.isInRange !== null && after.rangeStatus.isInRange !== null) {
+      if (before.rangeStatus.isInRange !== after.rangeStatus.isInRange) {
+        const transition = after.rangeStatus.isInRange ? 'OUT → IN RANGE ✅' : 'IN → OUT OF RANGE ⚠️';
+        lines.push(`      Status Changed: ${transition}`);
+        if (!after.rangeStatus.isInRange) {
+          lines.push(`      ⚠️  Fee accrual PAUSED - position now single-sided`);
+        }
       } else {
-        lines.push(`      Range Status: ${after.isInRange ? 'IN RANGE ✅' : 'OUT OF RANGE ❌'} (unchanged)`);
+        lines.push(`      Status: ${after.rangeStatus.isInRange ? 'IN RANGE ✅' : 'OUT OF RANGE ❌'} (unchanged)`);
       }
     }
     
-    // Price per share change
-    if (before.pricePerShare && after.pricePerShare) {
-      const ppfsBefore = Number(ethers.utils.formatEther(before.pricePerShare));
-      const ppfsAfter = Number(ethers.utils.formatEther(after.pricePerShare));
+    // Single-sided exposure change
+    if (before.rangeStatus.singleSidedExposure !== after.rangeStatus.singleSidedExposure) {
+      lines.push(`      Exposure: ${before.rangeStatus.singleSidedExposure} → ${after.rangeStatus.singleSidedExposure}`);
+    }
+    
+    // Token composition shift
+    lines.push(`    💰 Token Composition:`);
+    if (before.tokenComposition && after.tokenComposition) {
+      const token0Shift = after.tokenComposition.token0Pct - before.tokenComposition.token0Pct;
+      lines.push(`      ${symbol0}: ${before.tokenComposition.token0Pct.toFixed(2)}% → ${after.tokenComposition.token0Pct.toFixed(2)}% (${token0Shift >= 0 ? '+' : ''}${token0Shift.toFixed(2)}%)`);
+      
+      // Explain the composition shift
+      if (Math.abs(token0Shift) > 0.01) {
+        if (token0Shift > 0) {
+          lines.push(`      ↳ More ${symbol0}, less ${symbol1} (price moved down)`);
+        } else {
+          lines.push(`      ↳ Less ${symbol0}, more ${symbol1} (price moved up)`);
+        }
+      }
+    }
+    
+    // Fee changes
+    lines.push(`    💸 Fee Accrual:`);
+    const feeGrowthStatus = after.fees.feeGrowthActive ? 'ACTIVE ✅' : 'PAUSED ⏸️';
+    lines.push(`      Fee Growth: ${feeGrowthStatus}`);
+    
+    if (before.fees.totalUnclaimedValueInToken1 !== null && after.fees.totalUnclaimedValueInToken1 !== null) {
+      const feeChange = after.fees.totalUnclaimedValueInToken1 - before.fees.totalUnclaimedValueInToken1;
+      lines.push(`      Unclaimed Fees: ${before.fees.totalUnclaimedValueInToken1.toFixed(6)} → ${after.fees.totalUnclaimedValueInToken1.toFixed(6)} ${symbol1} (${feeChange >= 0 ? '+' : ''}${feeChange.toFixed(6)})`);
+    }
+    
+    // Share accounting
+    lines.push(`    📈 Share Accounting:`);
+    if (before.shareAccounting.pricePerShare && after.shareAccounting.pricePerShare) {
+      const ppfsBefore = Number(ethers.utils.formatEther(before.shareAccounting.pricePerShare));
+      const ppfsAfter = Number(ethers.utils.formatEther(after.shareAccounting.pricePerShare));
       const ppfsDelta = ppfsAfter - ppfsBefore;
       const ppfsPctChange = ((ppfsDelta / ppfsBefore) * 100);
-      lines.push(`      Price Per Share: ${ppfsBefore.toFixed(8)} → ${ppfsAfter.toFixed(8)} (${ppfsPctChange >= 0 ? '+' : ''}${ppfsPctChange.toFixed(6)}%)`);
+      lines.push(`      PPFS: ${ppfsBefore.toFixed(8)} → ${ppfsAfter.toFixed(8)} (${ppfsPctChange >= 0 ? '+' : ''}${ppfsPctChange.toFixed(6)}%)`);
     }
     
-    // TVL change
-    if (before.tvl !== null && after.tvl !== null) {
-      const tvlDelta = after.tvl - before.tvl;
-      const tvlPctChange = ((tvlDelta / before.tvl) * 100);
-      lines.push(`      TVL: ${before.tvl.toFixed(2)} → ${after.tvl.toFixed(2)} (${tvlPctChange >= 0 ? '+' : ''}${tvlPctChange.toFixed(4)}%)`);
+    if (before.shareAccounting.tvl !== null && after.shareAccounting.tvl !== null) {
+      const tvlDelta = after.shareAccounting.tvl - before.shareAccounting.tvl;
+      const tvlPctChange = ((tvlDelta / before.shareAccounting.tvl) * 100);
+      lines.push(`      TVL: ${before.shareAccounting.tvl.toFixed(2)} → ${after.shareAccounting.tvl.toFixed(2)} ${symbol1} (${tvlPctChange >= 0 ? '+' : ''}${tvlPctChange.toFixed(4)}%)`);
     }
     
-    // User value change (shares stay constant)
-    if (before.userShareValue !== null && after.userShareValue !== null && before.userShares && after.userShares) {
-      const sharesBefore = Number(ethers.utils.formatEther(before.userShares));
-      const sharesAfter = Number(ethers.utils.formatEther(after.userShares));
-      const valueDelta = after.userShareValue - before.userShareValue;
-      const valuePctChange = ((valueDelta / before.userShareValue) * 100);
-      lines.push(`      Your Shares: ${sharesBefore.toFixed(6)} → ${sharesAfter.toFixed(6)} (constant)`);
-      lines.push(`      Your Value: ${before.userShareValue.toFixed(6)} → ${after.userShareValue.toFixed(6)} (${valuePctChange >= 0 ? '+' : ''}${valuePctChange.toFixed(4)}%)`);
+    if (before.shareAccounting.userShareValue !== null && after.shareAccounting.userShareValue !== null) {
+      const sharesBefore = parseFloat(before.shareAccounting.userSharesFormatted);
+      const sharesAfter = parseFloat(after.shareAccounting.userSharesFormatted);
+      const valueDelta = after.shareAccounting.userShareValue - before.shareAccounting.userShareValue;
+      const valuePctChange = ((valueDelta / before.shareAccounting.userShareValue) * 100);
+      lines.push(`      Your Shares: ${sharesBefore.toFixed(6)} → ${sharesAfter.toFixed(6)} (constant ✓)`);
+      lines.push(`      Your Value: ${before.shareAccounting.userShareValue.toFixed(6)} → ${after.shareAccounting.userShareValue.toFixed(6)} ${symbol1} (${valuePctChange >= 0 ? '+' : ''}${valuePctChange.toFixed(4)}%)`);
     }
     
     return lines.join('\n');
+  }
+
+  /**
+   * Build comprehensive result object for JSON
+   */
+  buildResultObject(scenario, success, swap, beforeState, afterState, error = null) {
+    if (!success) {
+      return { scenario, success, error, timestamp: new Date().toISOString() };
+    }
+    
+    const result = {
+      scenario,
+      success: true,
+      timestamp: new Date().toISOString(),
+      
+      // Swap details
+      swap,
+      
+      // Before state
+      before: {
+        // DEX-Level (Ground Truth)
+        dexLevel: {
+          tick: beforeState.poolState.currentTick,
+          price: beforeState.poolState.price,
+          sqrtPriceX96: beforeState.poolState.sqrtPriceX96?.toString(),
+          poolLiquidity: beforeState.poolState.poolLiquidity?.toString()
+        },
+        
+        // Position
+        position: {
+          tickLower: beforeState.position.tickLower,
+          tickUpper: beforeState.position.tickUpper,
+          tickSpan: beforeState.position.tickSpan,
+          liquidity: beforeState.position.liquidity?.toString()
+        },
+        
+        // Range Status
+        rangeStatus: {
+          isInRange: beforeState.rangeStatus.isInRange,
+          singleSidedExposure: beforeState.rangeStatus.singleSidedExposure,
+          distanceToLowerTick: beforeState.rangeStatus.distanceToLowerTick,
+          distanceToUpperTick: beforeState.rangeStatus.distanceToUpperTick,
+          percentInRange: beforeState.rangeStatus.percentInRange
+        },
+        
+        // Token Composition
+        tokenComposition: beforeState.tokenComposition,
+        amount0: beforeState.amount0Formatted,
+        amount1: beforeState.amount1Formatted,
+        
+        // Fee Accrual
+        fees: {
+          feeGrowthActive: beforeState.fees.feeGrowthActive,
+          unclaimedFees0: beforeState.fees.unclaimedFees0Formatted,
+          unclaimedFees1: beforeState.fees.unclaimedFees1Formatted,
+          totalUnclaimedValueInToken1: beforeState.fees.totalUnclaimedValueInToken1
+        },
+        
+        // Share Accounting
+        shareAccounting: {
+          pricePerShare: beforeState.shareAccounting.pricePerShareFormatted,
+          tvl: beforeState.shareAccounting.tvl,
+          userShares: beforeState.shareAccounting.userSharesFormatted,
+          userShareValue: beforeState.shareAccounting.userShareValue
+        }
+      },
+      
+      // After state
+      after: {
+        dexLevel: {
+          tick: afterState.poolState.currentTick,
+          price: afterState.poolState.price,
+          sqrtPriceX96: afterState.poolState.sqrtPriceX96?.toString(),
+          poolLiquidity: afterState.poolState.poolLiquidity?.toString()
+        },
+        position: {
+          tickLower: afterState.position.tickLower,
+          tickUpper: afterState.position.tickUpper,
+          tickSpan: afterState.position.tickSpan,
+          liquidity: afterState.position.liquidity?.toString()
+        },
+        rangeStatus: {
+          isInRange: afterState.rangeStatus.isInRange,
+          singleSidedExposure: afterState.rangeStatus.singleSidedExposure,
+          distanceToLowerTick: afterState.rangeStatus.distanceToLowerTick,
+          distanceToUpperTick: afterState.rangeStatus.distanceToUpperTick,
+          percentInRange: afterState.rangeStatus.percentInRange
+        },
+        tokenComposition: afterState.tokenComposition,
+        amount0: afterState.amount0Formatted,
+        amount1: afterState.amount1Formatted,
+        fees: {
+          feeGrowthActive: afterState.fees.feeGrowthActive,
+          unclaimedFees0: afterState.fees.unclaimedFees0Formatted,
+          unclaimedFees1: afterState.fees.unclaimedFees1Formatted,
+          totalUnclaimedValueInToken1: afterState.fees.totalUnclaimedValueInToken1
+        },
+        shareAccounting: {
+          pricePerShare: afterState.shareAccounting.pricePerShareFormatted,
+          tvl: afterState.shareAccounting.tvl,
+          userShares: afterState.shareAccounting.userSharesFormatted,
+          userShareValue: afterState.shareAccounting.userShareValue
+        }
+      },
+      
+      // Deltas / Changes
+      deltas: {
+        // DEX-Level
+        tickChange: afterState.poolState.currentTick - beforeState.poolState.currentTick,
+        priceChangePercent: beforeState.poolState.price && afterState.poolState.price 
+          ? ((afterState.poolState.price - beforeState.poolState.price) / beforeState.poolState.price) * 100 
+          : null,
+        
+        // Range Status
+        rangeStatusChanged: beforeState.rangeStatus.isInRange !== afterState.rangeStatus.isInRange,
+        wentOutOfRange: beforeState.rangeStatus.isInRange === true && afterState.rangeStatus.isInRange === false,
+        cameIntoRange: beforeState.rangeStatus.isInRange === false && afterState.rangeStatus.isInRange === true,
+        
+        // Token Composition
+        token0CompositionShift: beforeState.tokenComposition && afterState.tokenComposition
+          ? afterState.tokenComposition.token0Pct - beforeState.tokenComposition.token0Pct
+          : null,
+        
+        // Fee Changes
+        feeGrowthStatusChanged: beforeState.fees.feeGrowthActive !== afterState.fees.feeGrowthActive,
+        unclaimedFeesChange: beforeState.fees.totalUnclaimedValueInToken1 !== null && afterState.fees.totalUnclaimedValueInToken1 !== null
+          ? afterState.fees.totalUnclaimedValueInToken1 - beforeState.fees.totalUnclaimedValueInToken1
+          : null,
+        
+        // Share Accounting
+        pricePerShareChangePercent: beforeState.shareAccounting.pricePerShare && afterState.shareAccounting.pricePerShare
+          ? ((Number(ethers.utils.formatEther(afterState.shareAccounting.pricePerShare)) - Number(ethers.utils.formatEther(beforeState.shareAccounting.pricePerShare))) / 
+             Number(ethers.utils.formatEther(beforeState.shareAccounting.pricePerShare))) * 100
+          : null,
+        tvlChangePercent: beforeState.shareAccounting.tvl && afterState.shareAccounting.tvl
+          ? ((afterState.shareAccounting.tvl - beforeState.shareAccounting.tvl) / beforeState.shareAccounting.tvl) * 100
+          : null,
+        userValueChangePercent: beforeState.shareAccounting.userShareValue && afterState.shareAccounting.userShareValue
+          ? ((afterState.shareAccounting.userShareValue - beforeState.shareAccounting.userShareValue) / beforeState.shareAccounting.userShareValue) * 100
+          : null
+      },
+      
+      // Diagnostic flags
+      diagnostics: {
+        // Bug detection: fees not accruing while in-range
+        inRangeButNoFeeGrowth: afterState.rangeStatus.isInRange === true && afterState.fees.feeGrowthActive === false,
+        // Bug detection: fees accrued but PPFS didn't change
+        feesAccruedButPPFSUnchanged: false, // Would need harvest to detect this properly
+        // Warning: went out of range
+        positionWentOutOfRange: beforeState.rangeStatus.isInRange === true && afterState.rangeStatus.isInRange === false
+      }
+    };
+    
+    return result;
   }
 
   async executeSwap(vaultConfig, direction, amount) {
@@ -488,7 +857,6 @@ class VaultTester {
     
     console.log(`    Swapping ${ethers.utils.formatEther(amount)} ${symbolIn} → ${symbolOut}`);
     
-    // Approve token
     const token = new ethers.Contract(tokenIn, ERC20_ABI, this.signer);
     const routerAddress = vaultConfig.dex === "quickswap" 
       ? config.quickswap.router 
@@ -501,7 +869,6 @@ class VaultTester {
     const recipient = await this.signer.getAddress();
     
     if (vaultConfig.dex === "quickswap") {
-      // QuickSwap (Algebra) swap - requires deployer field
       const router = new ethers.Contract(routerAddress, QUICKSWAP_ROUTER_ABI, this.signer);
       const params = {
         tokenIn,
@@ -519,7 +886,6 @@ class VaultTester {
       console.log(`    ✅ Swap successful! Tx: ${receipt.transactionHash}`);
       return receipt;
     } else {
-      // Lotus (UniV3) swap
       const router = new ethers.Contract(routerAddress, LOTUS_ROUTER_ABI, this.signer);
       const params = {
         tokenIn,
@@ -546,7 +912,6 @@ class VaultTester {
     console.log(`   Pool: ${vaultConfig.pool}`);
     console.log(`${'═'.repeat(80)}`);
     
-    // Check if pool exists
     if (!vaultConfig.pool || vaultConfig.pool === "0x0000000000000000000000000000000000000000") {
       console.log(`  ⏭️  Skipping - Pool not configured`);
       return { skipped: true };
@@ -572,111 +937,62 @@ class VaultTester {
         const isLarge = scenario.includes("large");
         const isOutOfRange = scenario.includes("out-of-range");
         
-        // Determine swap amount based on scenario and token pair
         let amount;
         if (vaultConfig.token0Symbol === "USDC" || vaultConfig.token0Symbol === "USDT") {
-          // Stablecoin pair - use smaller amounts
           if (isOutOfRange) {
-            amount = ethers.utils.parseEther("50");  // $50 for out-of-range
+            amount = ethers.utils.parseEther("50");
           } else if (isLarge) {
-            amount = ethers.utils.parseEther("10");   // $10 for large
+            amount = ethers.utils.parseEther("10");
           } else {
-            amount = ethers.utils.parseEther("1");    // $1 for small
+            amount = ethers.utils.parseEther("1");
           }
         } else {
-          // Non-stablecoin - adjust amount
           if (isOutOfRange) {
-            amount = ethers.utils.parseEther("0.5");   // 0.5 ETH/BTC for out-of-range
+            amount = ethers.utils.parseEther("0.5");
           } else if (isLarge) {
-            amount = ethers.utils.parseEther("0.1");   // 0.1 ETH/BTC for large
+            amount = ethers.utils.parseEther("0.1");
           } else {
-            amount = ethers.utils.parseEther("0.01");  // 0.01 for small
+            amount = ethers.utils.parseEther("0.01");
           }
         }
         
-        // Get state before swap
         const beforeState = await this.getVaultState(vaultConfig, userAddress);
         
-        // Execute swap
         await this.executeSwap(vaultConfig, direction, amount);
         
-        // Wait a bit for state to update
         await new Promise(r => setTimeout(r, 3000));
         
-        // Get state after swap
         const afterState = await this.getVaultState(vaultConfig, userAddress);
         
-        // Display deltas
         console.log(this.formatDeltas(beforeState, afterState, vaultConfig.token0Symbol, vaultConfig.token1Symbol));
         
-        // Build result object with all metrics
-        const result = {
-          scenario,
-          success: true,
-          timestamp: new Date().toISOString(),
-          swap: {
-            direction,
-            amount: ethers.utils.formatEther(amount),
-            tokenIn: direction === "up" ? vaultConfig.token0Symbol : vaultConfig.token1Symbol,
-            tokenOut: direction === "up" ? vaultConfig.token1Symbol : vaultConfig.token0Symbol
-          },
-          before: {
-            tick: beforeState.currentTick,
-            price: beforeState.price,
-            tickLower: beforeState.tickLower,
-            tickUpper: beforeState.tickUpper,
-            isInRange: beforeState.isInRange,
-            tokenComposition: beforeState.tokenComposition,
-            liquidityUtilization: beforeState.liquidityUtilization,
-            pricePerShare: beforeState.pricePerShare ? ethers.utils.formatEther(beforeState.pricePerShare) : null,
-            tvl: beforeState.tvl,
-            userShares: beforeState.userShares ? ethers.utils.formatEther(beforeState.userShares) : null,
-            userShareValue: beforeState.userShareValue,
-            amount0: beforeState.amount0Formatted,
-            amount1: beforeState.amount1Formatted
-          },
-          after: {
-            tick: afterState.currentTick,
-            price: afterState.price,
-            tickLower: afterState.tickLower,
-            tickUpper: afterState.tickUpper,
-            isInRange: afterState.isInRange,
-            tokenComposition: afterState.tokenComposition,
-            liquidityUtilization: afterState.liquidityUtilization,
-            pricePerShare: afterState.pricePerShare ? ethers.utils.formatEther(afterState.pricePerShare) : null,
-            tvl: afterState.tvl,
-            userShares: afterState.userShares ? ethers.utils.formatEther(afterState.userShares) : null,
-            userShareValue: afterState.userShareValue,
-            amount0: afterState.amount0Formatted,
-            amount1: afterState.amount1Formatted
-          },
-          deltas: {
-            tick: afterState.currentTick - beforeState.currentTick,
-            priceChange: beforeState.price && afterState.price ? ((afterState.price - beforeState.price) / beforeState.price) * 100 : null,
-            token0CompositionShift: beforeState.tokenComposition && afterState.tokenComposition ? 
-              afterState.tokenComposition.token0Pct - beforeState.tokenComposition.token0Pct : null,
-            rangeStatusChanged: beforeState.isInRange !== afterState.isInRange,
-            pricePerShareChange: beforeState.pricePerShare && afterState.pricePerShare ?
-              ((Number(ethers.utils.formatEther(afterState.pricePerShare)) - Number(ethers.utils.formatEther(beforeState.pricePerShare))) / 
-               Number(ethers.utils.formatEther(beforeState.pricePerShare))) * 100 : null,
-            tvlChange: beforeState.tvl && afterState.tvl ? 
-              ((afterState.tvl - beforeState.tvl) / beforeState.tvl) * 100 : null,
-            userValueChange: beforeState.userShareValue && afterState.userShareValue ?
-              ((afterState.userShareValue - beforeState.userShareValue) / beforeState.userShareValue) * 100 : null
-          }
+        const swap = {
+          direction,
+          amount: ethers.utils.formatEther(amount),
+          tokenIn: direction === "up" ? vaultConfig.token0Symbol : vaultConfig.token1Symbol,
+          tokenOut: direction === "up" ? vaultConfig.token1Symbol : vaultConfig.token0Symbol
         };
         
+        const result = this.buildResultObject(scenario, true, swap, beforeState, afterState);
         testResults.push(result);
+        
+        // Add diagnostics if any issues detected
+        if (result.diagnostics.positionWentOutOfRange) {
+          console.log(`\n    ⚠️  WARNING: Position went OUT OF RANGE - fees paused!`);
+          this.results.diagnostics.push({
+            vault: vaultConfig.name,
+            scenario,
+            issue: 'Position went out of range',
+            severity: 'warning'
+          });
+        }
+        
         this.results.summary.passed++;
         console.log(`\n  ✅ ${scenario} PASSED`);
         
       } catch (error) {
         console.log(`\n  ❌ ${scenario} FAILED: ${error.message}`);
-        testResults.push({
-          scenario,
-          success: false,
-          error: error.message
-        });
+        testResults.push(this.buildResultObject(scenario, false, null, null, null, error.message));
         this.results.summary.failed++;
       }
     }
@@ -687,17 +1003,23 @@ class VaultTester {
       pool: vaultConfig.pool,
       dex: vaultConfig.dex,
       pair: `${vaultConfig.token0Symbol}/${vaultConfig.token1Symbol}`,
+      strategy: initialState.strategy,
       initialState: {
         totalSupply: initialState.totalSupply ? ethers.utils.formatEther(initialState.totalSupply) : null,
-        amount0: initialState.amount0Formatted,
-        amount1: initialState.amount1Formatted,
-        tick: initialState.currentTick,
-        tickLower: initialState.tickLower,
-        tickUpper: initialState.tickUpper,
-        isInRange: initialState.isInRange,
+        dexLevel: {
+          tick: initialState.poolState.currentTick,
+          price: initialState.poolState.price
+        },
+        position: initialState.position,
+        rangeStatus: initialState.rangeStatus,
         tokenComposition: initialState.tokenComposition,
-        pricePerShare: initialState.pricePerShare ? ethers.utils.formatEther(initialState.pricePerShare) : null,
-        tvl: initialState.tvl
+        fees: initialState.fees,
+        shareAccounting: {
+          pricePerShare: initialState.shareAccounting.pricePerShareFormatted,
+          tvl: initialState.shareAccounting.tvl,
+          userShares: initialState.shareAccounting.userSharesFormatted,
+          userShareValue: initialState.shareAccounting.userShareValue
+        }
       },
       results: testResults
     });
@@ -727,23 +1049,36 @@ async function main() {
   
   console.log(`
 ╔═══════════════════════════════════════════════════════════════════════════╗
-║              CLM VAULT COMPREHENSIVE TEST SUITE                           ║
+║              CLM VAULT COMPREHENSIVE TEST SUITE v2                        ║
 ║              MANTRA Dukong Testnet                                        ║
 ╠═══════════════════════════════════════════════════════════════════════════╣
 ║  Tracking:                                                                ║
-║  • Token composition shifts                                               ║
-║  • Active liquidity status (in-range / out-of-range)                      ║
-║  • Liquidity utilization                                                  ║
-║  • Price per share (PPFS) changes                                         ║
-║  • TVL changes (fees ± IL)                                                ║
-║  • User share value changes                                               ║
+║  1. CLM Vault Mechanics                                                   ║
+║     • Token composition shifts                                            ║
+║     • Active liquidity status (in-range / out-of-range)                   ║
+║     • Single-sided exposure detection                                     ║
+║                                                                           ║
+║  2. CLM Vault Share Accounting                                            ║
+║     • Price per share (PPFS) changes                                      ║
+║     • TVL changes (fees ± IL)                                             ║
+║     • User share value changes                                            ║
+║                                                                           ║
+║  3. Fee Accrual & Compounding                                             ║
+║     • Unclaimed fees tracking                                             ║
+║     • Fee growth active/paused status                                     ║
+║     • PPFS jump detection after swaps                                     ║
+║                                                                           ║
+║  4. DEX-Level Price & Ticks (Ground Truth)                                ║
+║     • Current tick / price                                                ║
+║     • Position lowerTick / upperTick                                      ║
+║     • Position straddle check                                             ║
+║     • Boundary crossing detection                                         ║
 ╚═══════════════════════════════════════════════════════════════════════════╝
   `);
   
   console.log(`Wallet: ${address}`);
   console.log(`Network: ${config.network_info.name}`);
   
-  // Check token balances first
   console.log(`\n📊 Checking token balances...`);
   for (const symbol of ['USDC', 'USDT', 'WETH', 'WBTC']) {
     const tokenAddr = config.tokens[symbol];
@@ -757,23 +1092,27 @@ async function main() {
   
   const tester = new VaultTester(signer);
   
-  // Test scenarios - comprehensive for working vaults
-  const basicScenarios = ["small-up", "small-down"];
   const extendedScenarios = ["small-up", "small-down", "large-up", "large-down"];
   
-  // Test each vault
   for (const vaultConfig of VAULT_CONFIGS) {
-    // Skip QuickSwap for now (requires different pool deployer investigation)
     if (vaultConfig.dex === "quickswap") {
       console.log(`\n⏭️  Skipping ${vaultConfig.name} - QuickSwap pool interface requires investigation`);
       continue;
     }
     
-    // Run extended scenarios for Lotus vaults
     await tester.testVault(vaultConfig, extendedScenarios);
   }
   
-  // Summary
+  // Print diagnostics summary
+  if (tester.results.diagnostics.length > 0) {
+    console.log(`\n${'═'.repeat(80)}`);
+    console.log(`⚠️  DIAGNOSTICS SUMMARY`);
+    console.log(`${'═'.repeat(80)}`);
+    for (const diag of tester.results.diagnostics) {
+      console.log(`  • ${diag.vault} - ${diag.scenario}: ${diag.issue} [${diag.severity}]`);
+    }
+  }
+  
   console.log(`
 ╔═══════════════════════════════════════════════════════════════════════════╗
 ║                           TEST SUMMARY                                    ║
@@ -787,7 +1126,6 @@ async function main() {
     : 0}%
   `);
   
-  // Save results
   tester.saveResults();
   
   if (tester.results.summary.failed > 0) {

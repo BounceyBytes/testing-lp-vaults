@@ -1,0 +1,1445 @@
+{
+  "timestamp": "2026-01-21T11:06:55.618Z",
+  "tests": [
+    {
+      "vault": "Lotus WETH-USDT",
+      "address": "0x1e27612d5240d25b70608cdabe1446e67ae7c48f",
+      "pool": "0x16614FCF1b082e021349F7Dc5aFE22d96641e71C",
+      "dex": "lotus",
+      "pair": "WETH/USDT",
+      "strategy": "0x145f974732D8528D105d07A1B9A87C2DD2D6F205",
+      "initialState": {
+        "totalSupply": "171820.738200309356113505",
+        "dexLevel": {
+          "tick": 83144,
+          "price": 4080.6421461664318
+        },
+        "position": {
+          "tickLower": null,
+          "tickUpper": null,
+          "liquidity": null,
+          "tickSpan": null
+        },
+        "rangeStatus": {
+          "isInRange": null,
+          "singleSidedExposure": null,
+          "distanceToLowerTick": null,
+          "distanceToUpperTick": null,
+          "percentInRange": null
+        },
+        "tokenComposition": {
+          "token0Pct": 50.20844463640679,
+          "token1Pct": 49.79155536359321
+        },
+        "fees": {
+          "unclaimedFees0": {
+            "type": "BigNumber",
+            "hex": "0x00"
+          },
+          "unclaimedFees1": {
+            "type": "BigNumber",
+            "hex": "0x00"
+          },
+          "unclaimedFees0Formatted": "0.0",
+          "unclaimedFees1Formatted": "0.0",
+          "totalUnclaimedValueInToken1": 0,
+          "lastHarvest": {
+            "type": "BigNumber",
+            "hex": "0x69701712"
+          },
+          "feeGrowthActive": false
+        },
+        "shareAccounting": {
+          "pricePerShare": "0.494810739597902893",
+          "tvl": 85018.74654715272,
+          "userShares": "404.036277624647525552",
+          "userShareValue": 199.92148935583546
+        }
+      },
+      "results": [
+        {
+          "scenario": "small-up",
+          "success": true,
+          "timestamp": "2026-01-21T11:08:07.320Z",
+          "swap": {
+            "direction": "up",
+            "amount": "0.01",
+            "tokenIn": "WETH",
+            "tokenOut": "USDT"
+          },
+          "before": {
+            "dexLevel": {
+              "tick": 83144,
+              "price": 4080.6421461664318,
+              "sqrtPriceX96": "5061087422401764520543859234597",
+              "poolLiquidity": "40151471804471546720834"
+            },
+            "position": {
+              "tickLower": null,
+              "tickUpper": null,
+              "tickSpan": null
+            },
+            "rangeStatus": {
+              "isInRange": null,
+              "singleSidedExposure": null,
+              "distanceToLowerTick": null,
+              "distanceToUpperTick": null,
+              "percentInRange": null
+            },
+            "tokenComposition": {
+              "token0Pct": 50.20844463640679,
+              "token1Pct": 49.79155536359321
+            },
+            "amount0": "10.460753176015738603",
+            "amount1": "42332.15625645853672773",
+            "fees": {
+              "feeGrowthActive": false,
+              "unclaimedFees0": "0.0",
+              "unclaimedFees1": "0.0",
+              "totalUnclaimedValueInToken1": 0
+            },
+            "shareAccounting": {
+              "pricePerShare": "0.494810739597902893",
+              "tvl": 85018.74654715272,
+              "userShares": "404.036277624647525552",
+              "userShareValue": 199.92148935583546
+            }
+          },
+          "after": {
+            "dexLevel": {
+              "tick": 83143,
+              "price": 4080.5123703613467,
+              "sqrtPriceX96": "5061006943411758027974426697643",
+              "poolLiquidity": "40151471804471546720834"
+            },
+            "position": {
+              "tickLower": null,
+              "tickUpper": null,
+              "tickSpan": null
+            },
+            "rangeStatus": {
+              "isInRange": null,
+              "singleSidedExposure": null,
+              "distanceToLowerTick": null,
+              "distanceToUpperTick": null,
+              "percentInRange": null
+            },
+            "tokenComposition": {
+              "token0Pct": 50.21713024663546,
+              "token1Pct": 49.78286975336452
+            },
+            "amount0": "10.462728457678004067",
+            "amount1": "42324.095967029849656874",
+            "fees": {
+              "feeGrowthActive": false,
+              "unclaimedFees0": "0.0",
+              "unclaimedFees1": "0.0",
+              "totalUnclaimedValueInToken1": 0
+            },
+            "shareAccounting": {
+              "pricePerShare": "0.494802837869332157",
+              "tvl": 85017.38886631664,
+              "userShares": "404.036277624647525552",
+              "userShareValue": 199.91829677083695
+            }
+          },
+          "deltas": {
+            "tickChange": -1,
+            "priceChangePercent": -0.0031802789962105432,
+            "rangeStatusChanged": false,
+            "wentOutOfRange": false,
+            "cameIntoRange": false,
+            "token0CompositionShift": 0.008685610228674534,
+            "feeGrowthStatusChanged": false,
+            "unclaimedFeesChange": 0,
+            "pricePerShareChangePercent": -0.0015969193751043658,
+            "tvlChangePercent": -0.0015969193751030912,
+            "userValueChangePercent": -0.001596919375101947
+          },
+          "diagnostics": {
+            "inRangeButNoFeeGrowth": false,
+            "feesAccruedButPPFSUnchanged": false,
+            "positionWentOutOfRange": false
+          }
+        },
+        {
+          "scenario": "small-down",
+          "success": true,
+          "timestamp": "2026-01-21T11:08:57.253Z",
+          "swap": {
+            "direction": "down",
+            "amount": "0.01",
+            "tokenIn": "USDT",
+            "tokenOut": "WETH"
+          },
+          "before": {
+            "dexLevel": {
+              "tick": 83143,
+              "price": 4080.5123703613467,
+              "sqrtPriceX96": "5061006943411758027974426697643",
+              "poolLiquidity": "40151471804471546720834"
+            },
+            "position": {
+              "tickLower": null,
+              "tickUpper": null,
+              "tickSpan": null
+            },
+            "rangeStatus": {
+              "isInRange": null,
+              "singleSidedExposure": null,
+              "distanceToLowerTick": null,
+              "distanceToUpperTick": null,
+              "percentInRange": null
+            },
+            "tokenComposition": {
+              "token0Pct": 50.21713024663546,
+              "token1Pct": 49.78286975336452
+            },
+            "amount0": "10.462728457678004067",
+            "amount1": "42324.095967029849656874",
+            "fees": {
+              "feeGrowthActive": false,
+              "unclaimedFees0": "0.0",
+              "unclaimedFees1": "0.0",
+              "totalUnclaimedValueInToken1": 0
+            },
+            "shareAccounting": {
+              "pricePerShare": "0.494802837869332157",
+              "tvl": 85017.38886631664,
+              "userShares": "404.036277624647525552",
+              "userShareValue": 199.91829677083695
+            }
+          },
+          "after": {
+            "dexLevel": {
+              "tick": 83143,
+              "price": 4080.5124021643896,
+              "sqrtPriceX96": "5061006963134210250557265807535",
+              "poolLiquidity": "40151471804471546720834"
+            },
+            "position": {
+              "tickLower": null,
+              "tickUpper": null,
+              "tickSpan": null
+            },
+            "rangeStatus": {
+              "isInRange": null,
+              "singleSidedExposure": null,
+              "distanceToLowerTick": null,
+              "distanceToUpperTick": null,
+              "percentInRange": null
+            },
+            "tokenComposition": {
+              "token0Pct": 50.21712811809345,
+              "token1Pct": 49.78287188190655
+            },
+            "amount0": "10.462727973601134477",
+            "amount1": "42324.097942311511922338",
+            "fees": {
+              "feeGrowthActive": false,
+              "unclaimedFees0": "0.0",
+              "unclaimedFees1": "0.0",
+              "totalUnclaimedValueInToken1": 0
+            },
+            "shareAccounting": {
+              "pricePerShare": "0.494802839805923766",
+              "tvl": 85017.38919906324,
+              "userShares": "404.036277624647525552",
+              "userShareValue": 199.91829755329022
+            }
+          },
+          "deltas": {
+            "tickChange": 0,
+            "priceChangePercent": 7.793884699584181e-7,
+            "rangeStatusChanged": false,
+            "wentOutOfRange": false,
+            "cameIntoRange": false,
+            "token0CompositionShift": -0.000002128542014645518,
+            "feeGrowthStatusChanged": false,
+            "unclaimedFeesChange": 0,
+            "pricePerShareChangePercent": 3.9138652026257846e-7,
+            "tvlChangePercent": 3.9138651630959205e-7,
+            "userValueChangePercent": 3.9138652280187905e-7
+          },
+          "diagnostics": {
+            "inRangeButNoFeeGrowth": false,
+            "feesAccruedButPPFSUnchanged": false,
+            "positionWentOutOfRange": false
+          }
+        },
+        {
+          "scenario": "large-up",
+          "success": true,
+          "timestamp": "2026-01-21T11:09:46.445Z",
+          "swap": {
+            "direction": "up",
+            "amount": "0.1",
+            "tokenIn": "WETH",
+            "tokenOut": "USDT"
+          },
+          "before": {
+            "dexLevel": {
+              "tick": 83143,
+              "price": 4080.5124021643896,
+              "sqrtPriceX96": "5061006963134210250557265807535",
+              "poolLiquidity": "40151471804471546720834"
+            },
+            "position": {
+              "tickLower": null,
+              "tickUpper": null,
+              "tickSpan": null
+            },
+            "rangeStatus": {
+              "isInRange": null,
+              "singleSidedExposure": null,
+              "distanceToLowerTick": null,
+              "distanceToUpperTick": null,
+              "percentInRange": null
+            },
+            "tokenComposition": {
+              "token0Pct": 50.21712811809345,
+              "token1Pct": 49.78287188190655
+            },
+            "amount0": "10.462727973601134477",
+            "amount1": "42324.097942311511922338",
+            "fees": {
+              "feeGrowthActive": false,
+              "unclaimedFees0": "0.0",
+              "unclaimedFees1": "0.0",
+              "totalUnclaimedValueInToken1": 0
+            },
+            "shareAccounting": {
+              "pricePerShare": "0.494802839805923766",
+              "tvl": 85017.38919906324,
+              "userShares": "404.036277624647525552",
+              "userShareValue": 199.91829755329022
+            }
+          },
+          "after": {
+            "dexLevel": {
+              "tick": 83140,
+              "price": 4079.2149845246936,
+              "sqrtPriceX96": "5060202313976715366666991414121",
+              "poolLiquidity": "40151471804471546720834"
+            },
+            "position": {
+              "tickLower": null,
+              "tickUpper": null,
+              "tickSpan": null
+            },
+            "rangeStatus": {
+              "isInRange": null,
+              "singleSidedExposure": null,
+              "distanceToLowerTick": null,
+              "distanceToUpperTick": null,
+              "percentInRange": null
+            },
+            "tokenComposition": {
+              "token0Pct": 50.30397673940731,
+              "token1Pct": 49.69602326059269
+            },
+            "amount0": "10.482480790223789113",
+            "amount1": "42243.509143950166405934",
+            "fees": {
+              "feeGrowthActive": false,
+              "unclaimedFees0": "0.0",
+              "unclaimedFees1": "0.0",
+              "totalUnclaimedValueInToken1": 0
+            },
+            "shareAccounting": {
+              "pricePerShare": "0.494723761222149394",
+              "tvl": 85003.80185842329,
+              "userShares": "404.036277624647525552",
+              "userShareValue": 199.8863469366622
+            }
+          },
+          "deltas": {
+            "tickChange": -3,
+            "priceChangePercent": -0.03179545880090629,
+            "rangeStatusChanged": false,
+            "wentOutOfRange": false,
+            "cameIntoRange": false,
+            "token0CompositionShift": 0.0868486213138624,
+            "feeGrowthStatusChanged": false,
+            "unclaimedFeesChange": 0,
+            "pricePerShareChangePercent": -0.015981837089978978,
+            "tvlChangePercent": -0.015981837089979127,
+            "userValueChangePercent": -0.015981837089977566
+          },
+          "diagnostics": {
+            "inRangeButNoFeeGrowth": false,
+            "feesAccruedButPPFSUnchanged": false,
+            "positionWentOutOfRange": false
+          }
+        },
+        {
+          "scenario": "large-down",
+          "success": true,
+          "timestamp": "2026-01-21T11:10:38.542Z",
+          "swap": {
+            "direction": "down",
+            "amount": "0.1",
+            "tokenIn": "USDT",
+            "tokenOut": "WETH"
+          },
+          "before": {
+            "dexLevel": {
+              "tick": 83140,
+              "price": 4079.2149845246936,
+              "sqrtPriceX96": "5060202313976715366666991414121",
+              "poolLiquidity": "40151471804471546720834"
+            },
+            "position": {
+              "tickLower": null,
+              "tickUpper": null,
+              "tickSpan": null
+            },
+            "rangeStatus": {
+              "isInRange": null,
+              "singleSidedExposure": null,
+              "distanceToLowerTick": null,
+              "distanceToUpperTick": null,
+              "percentInRange": null
+            },
+            "tokenComposition": {
+              "token0Pct": 50.30397673940731,
+              "token1Pct": 49.69602326059269
+            },
+            "amount0": "10.482480790223789113",
+            "amount1": "42243.509143950166405934",
+            "fees": {
+              "feeGrowthActive": false,
+              "unclaimedFees0": "0.0",
+              "unclaimedFees1": "0.0",
+              "totalUnclaimedValueInToken1": 0
+            },
+            "shareAccounting": {
+              "pricePerShare": "0.494723761222149394",
+              "tvl": 85003.80185842329,
+              "userShares": "404.036277624647525552",
+              "userShareValue": 199.8863469366622
+            }
+          },
+          "after": {
+            "dexLevel": {
+              "tick": 83140,
+              "price": 4079.215302504566,
+              "sqrtPriceX96": "5060202511201237592495382513043",
+              "poolLiquidity": "40151471804471546720834"
+            },
+            "position": {
+              "tickLower": null,
+              "tickUpper": null,
+              "tickSpan": null
+            },
+            "rangeStatus": {
+              "isInRange": null,
+              "singleSidedExposure": null,
+              "distanceToLowerTick": null,
+              "distanceToUpperTick": null,
+              "percentInRange": null
+            },
+            "tokenComposition": {
+              "token0Pct": 50.30395545054828,
+              "token1Pct": 49.69604454945173
+            },
+            "amount0": "10.482475947915666665",
+            "amount1": "42243.528896766789060571",
+            "fees": {
+              "feeGrowthActive": false,
+              "unclaimedFees0": "0.0",
+              "unclaimedFees1": "0.0",
+              "totalUnclaimedValueInToken1": 0
+            },
+            "shareAccounting": {
+              "pricePerShare": "0.494723780621537157",
+              "tvl": 85003.80519164042,
+              "userShares": "404.036277624647525552",
+              "userShareValue": 199.8863547747186
+            }
+          },
+          "deltas": {
+            "tickChange": 0,
+            "priceChangePercent": 0.000007795124147981167,
+            "rangeStatusChanged": false,
+            "wentOutOfRange": false,
+            "cameIntoRange": false,
+            "token0CompositionShift": -0.000021288859031187712,
+            "feeGrowthStatusChanged": false,
+            "unclaimedFeesChange": 0,
+            "pricePerShareChangePercent": 0.000003921256524030555,
+            "tvlChangePercent": 0.000003921256528319701,
+            "userValueChangePercent": 0.000003921256516479908
+          },
+          "diagnostics": {
+            "inRangeButNoFeeGrowth": false,
+            "feesAccruedButPPFSUnchanged": false,
+            "positionWentOutOfRange": false
+          }
+        }
+      ]
+    },
+    {
+      "vault": "Lotus WBTC-USDC",
+      "address": "0xacd6e64e56f66e4f010709d54686792ea96b7230",
+      "pool": "0xfD6B4B088f8A73A03AedbB87A4631A317cB97147",
+      "dex": "lotus",
+      "pair": "WBTC/USDC",
+      "strategy": "0xDA0063471ECD9f24b23B4CAC90c6C545dF920137",
+      "initialState": {
+        "totalSupply": "1497.177421660812130252",
+        "dexLevel": {
+          "tick": 116002,
+          "price": 109062.91792571732
+        },
+        "position": {
+          "tickLower": null,
+          "tickUpper": null,
+          "liquidity": null,
+          "tickSpan": null
+        },
+        "rangeStatus": {
+          "isInRange": null,
+          "singleSidedExposure": null,
+          "distanceToLowerTick": null,
+          "distanceToUpperTick": null,
+          "percentInRange": null
+        },
+        "tokenComposition": {
+          "token0Pct": 50.94720885819983,
+          "token1Pct": 49.05279114180016
+        },
+        "fees": {
+          "unclaimedFees0": {
+            "type": "BigNumber",
+            "hex": "0x00"
+          },
+          "unclaimedFees1": {
+            "type": "BigNumber",
+            "hex": "0x00"
+          },
+          "unclaimedFees0Formatted": "0.0",
+          "unclaimedFees1Formatted": "0.0",
+          "totalUnclaimedValueInToken1": 0,
+          "lastHarvest": {
+            "type": "BigNumber",
+            "hex": "0x69701707"
+          },
+          "feeGrowthActive": false
+        },
+        "shareAccounting": {
+          "pricePerShare": "163.044125631608665117",
+          "tvl": 244105.98363007337,
+          "userShares": "1.224509288854717656",
+          "userShareValue": 199.64904632910034
+        }
+      },
+      "results": [
+        {
+          "scenario": "small-up",
+          "success": true,
+          "timestamp": "2026-01-21T11:11:53.874Z",
+          "swap": {
+            "direction": "up",
+            "amount": "0.01",
+            "tokenIn": "WBTC",
+            "tokenOut": "USDC"
+          },
+          "before": {
+            "dexLevel": {
+              "tick": 116002,
+              "price": 109062.91792571732,
+              "sqrtPriceX96": "26164843423530273162121661080511",
+              "poolLiquidity": "45572151090377736859193"
+            },
+            "position": {
+              "tickLower": null,
+              "tickUpper": null,
+              "tickSpan": null
+            },
+            "rangeStatus": {
+              "isInRange": null,
+              "singleSidedExposure": null,
+              "distanceToLowerTick": null,
+              "distanceToUpperTick": null,
+              "percentInRange": null
+            },
+            "tokenComposition": {
+              "token0Pct": 50.94720885819983,
+              "token1Pct": 49.05279114180016
+            },
+            "amount0": "1.140306785117207587",
+            "amount1": "119740.798314696767484805",
+            "fees": {
+              "feeGrowthActive": false,
+              "unclaimedFees0": "0.0",
+              "unclaimedFees1": "0.0",
+              "totalUnclaimedValueInToken1": 0
+            },
+            "shareAccounting": {
+              "pricePerShare": "163.044125631608665117",
+              "tvl": 244105.98363007337,
+              "userShares": "1.224509288854717656",
+              "userShareValue": 199.64904632910034
+            }
+          },
+          "after": {
+            "dexLevel": {
+              "tick": 116001,
+              "price": 109047.12066621003,
+              "sqrtPriceX96": "26162948426597255176479210674357",
+              "poolLiquidity": "45572151090377736859193"
+            },
+            "position": {
+              "tickLower": null,
+              "tickUpper": null,
+              "tickSpan": null
+            },
+            "rangeStatus": {
+              "isInRange": null,
+              "singleSidedExposure": null,
+              "distanceToLowerTick": null,
+              "distanceToUpperTick": null,
+              "percentInRange": null
+            },
+            "tokenComposition": {
+              "token0Pct": 50.98664193828137,
+              "token1Pct": 49.01335806171863
+            },
+            "amount0": "1.141270439698790195",
+            "amount1": "119635.706945983276820651",
+            "fees": {
+              "feeGrowthActive": false,
+              "unclaimedFees0": "0.0",
+              "unclaimedFees1": "0.0",
+              "totalUnclaimedValueInToken1": 0
+            },
+            "shareAccounting": {
+              "pricePerShare": "163.032088759280213708",
+              "tvl": 244087.96229659583,
+              "userShares": "1.224509288854717656",
+              "userShareValue": 199.6343070671254
+            }
+          },
+          "deltas": {
+            "tickChange": -1,
+            "priceChangePercent": -0.014484537739997796,
+            "rangeStatusChanged": false,
+            "wentOutOfRange": false,
+            "cameIntoRange": false,
+            "token0CompositionShift": 0.03943308008154389,
+            "feeGrowthStatusChanged": false,
+            "unclaimedFeesChange": 0,
+            "pricePerShareChangePercent": -0.007382585715261043,
+            "tvlChangePercent": -0.0073825857152511705,
+            "userValueChangePercent": -0.007382585715256625
+          },
+          "diagnostics": {
+            "inRangeButNoFeeGrowth": false,
+            "feesAccruedButPPFSUnchanged": false,
+            "positionWentOutOfRange": false
+          }
+        },
+        {
+          "scenario": "small-down",
+          "success": true,
+          "timestamp": "2026-01-21T11:12:41.573Z",
+          "swap": {
+            "direction": "down",
+            "amount": "0.01",
+            "tokenIn": "USDC",
+            "tokenOut": "WBTC"
+          },
+          "before": {
+            "dexLevel": {
+              "tick": 116001,
+              "price": 109047.12066621003,
+              "sqrtPriceX96": "26162948426597255176479210674357",
+              "poolLiquidity": "45572151090377736859193"
+            },
+            "position": {
+              "tickLower": null,
+              "tickUpper": null,
+              "tickSpan": null
+            },
+            "rangeStatus": {
+              "isInRange": null,
+              "singleSidedExposure": null,
+              "distanceToLowerTick": null,
+              "distanceToUpperTick": null,
+              "percentInRange": null
+            },
+            "tokenComposition": {
+              "token0Pct": 50.98664193828137,
+              "token1Pct": 49.01335806171863
+            },
+            "amount0": "1.141270439698790195",
+            "amount1": "119635.706945983276820651",
+            "fees": {
+              "feeGrowthActive": false,
+              "unclaimedFees0": "0.0",
+              "unclaimedFees1": "0.0",
+              "totalUnclaimedValueInToken1": 0
+            },
+            "shareAccounting": {
+              "pricePerShare": "163.032088759280213708",
+              "tvl": 244087.96229659583,
+              "userShares": "1.224509288854717656",
+              "userShareValue": 199.6343070671254
+            }
+          },
+          "after": {
+            "dexLevel": {
+              "tick": 116001,
+              "price": 109047.12081106065,
+              "sqrtPriceX96": "26162948443973777139632131078172",
+              "poolLiquidity": "45572151090377736859193"
+            },
+            "position": {
+              "tickLower": null,
+              "tickUpper": null,
+              "tickSpan": null
+            },
+            "rangeStatus": {
+              "isInRange": null,
+              "singleSidedExposure": null,
+              "distanceToLowerTick": null,
+              "distanceToUpperTick": null,
+              "percentInRange": null
+            },
+            "tokenComposition": {
+              "token0Pct": 50.98664157667863,
+              "token1Pct": 49.01335842332137
+            },
+            "amount0": "1.141270430861742733",
+            "amount1": "119635.707909637858403259",
+            "fees": {
+              "feeGrowthActive": false,
+              "unclaimedFees0": "0.0",
+              "unclaimedFees1": "0.0",
+              "totalUnclaimedValueInToken1": 0
+            },
+            "shareAccounting": {
+              "pricePerShare": "163.032088869697162181",
+              "tvl": 244087.96246190957,
+              "userShares": "1.224509288854717656",
+              "userShareValue": 199.634307202332
+            }
+          },
+          "deltas": {
+            "tickChange": 0,
+            "priceChangePercent": 1.3283305589474988e-7,
+            "rangeStatusChanged": false,
+            "wentOutOfRange": false,
+            "cameIntoRange": false,
+            "token0CompositionShift": -3.6160274419216876e-7,
+            "feeGrowthStatusChanged": false,
+            "unclaimedFeesChange": 0,
+            "pricePerShareChangePercent": 6.772712618335528e-8,
+            "tvlChangePercent": 6.772711880733561e-8,
+            "userValueChangePercent": 6.772713207393216e-8
+          },
+          "diagnostics": {
+            "inRangeButNoFeeGrowth": false,
+            "feesAccruedButPPFSUnchanged": false,
+            "positionWentOutOfRange": false
+          }
+        },
+        {
+          "scenario": "large-up",
+          "success": true,
+          "timestamp": "2026-01-21T11:13:35.377Z",
+          "swap": {
+            "direction": "up",
+            "amount": "0.1",
+            "tokenIn": "WBTC",
+            "tokenOut": "USDC"
+          },
+          "before": {
+            "dexLevel": {
+              "tick": 116001,
+              "price": 109047.12081106065,
+              "sqrtPriceX96": "26162948443973777139632131078172",
+              "poolLiquidity": "45572151090377736859193"
+            },
+            "position": {
+              "tickLower": null,
+              "tickUpper": null,
+              "tickSpan": null
+            },
+            "rangeStatus": {
+              "isInRange": null,
+              "singleSidedExposure": null,
+              "distanceToLowerTick": null,
+              "distanceToUpperTick": null,
+              "percentInRange": null
+            },
+            "tokenComposition": {
+              "token0Pct": 50.98664157667863,
+              "token1Pct": 49.01335842332137
+            },
+            "amount0": "1.141270430861742733",
+            "amount1": "119635.707909637858403259",
+            "fees": {
+              "feeGrowthActive": false,
+              "unclaimedFees0": "0.0",
+              "unclaimedFees1": "0.0",
+              "totalUnclaimedValueInToken1": 0
+            },
+            "shareAccounting": {
+              "pricePerShare": "163.032088869697162181",
+              "tvl": 244087.96246190957,
+              "userShares": "1.224509288854717656",
+              "userShareValue": 199.634307202332
+            }
+          },
+          "after": {
+            "dexLevel": {
+              "tick": 115986,
+              "price": 108889.3368113009,
+              "sqrtPriceX96": "26144013560724025688081601448653",
+              "poolLiquidity": "45572151090377736859193"
+            },
+            "position": {
+              "tickLower": null,
+              "tickUpper": null,
+              "tickSpan": null
+            },
+            "rangeStatus": {
+              "isInRange": null,
+              "singleSidedExposure": null,
+              "distanceToLowerTick": null,
+              "distanceToUpperTick": null,
+              "percentInRange": null
+            },
+            "tokenComposition": {
+              "token0Pct": 51.38082609845355,
+              "token1Pct": 48.61917390154646
+            },
+            "amount0": "1.150906976677568812",
+            "amount1": "118585.630855435237264497",
+            "fees": {
+              "feeGrowthActive": false,
+              "unclaimedFees0": "0.0",
+              "unclaimedFees1": "0.0",
+              "totalUnclaimedValueInToken1": 0
+            },
+            "shareAccounting": {
+              "pricePerShare": "162.911305466248592211",
+              "tvl": 243907.12827735505,
+              "userShares": "1.224509288854717656",
+              "userShareValue": 199.4864068028697
+            }
+          },
+          "deltas": {
+            "tickChange": -15,
+            "priceChangePercent": -0.14469341197291244,
+            "rangeStatusChanged": false,
+            "wentOutOfRange": false,
+            "cameIntoRange": false,
+            "token0CompositionShift": 0.3941845217749176,
+            "feeGrowthStatusChanged": false,
+            "unclaimedFeesChange": 0,
+            "pricePerShareChangePercent": -0.07408566269742498,
+            "tvlChangePercent": -0.07408566269741446,
+            "userValueChangePercent": -0.07408566269743815
+          },
+          "diagnostics": {
+            "inRangeButNoFeeGrowth": false,
+            "feesAccruedButPPFSUnchanged": false,
+            "positionWentOutOfRange": false
+          }
+        },
+        {
+          "scenario": "large-down",
+          "success": true,
+          "timestamp": "2026-01-21T11:14:19.842Z",
+          "swap": {
+            "direction": "down",
+            "amount": "0.1",
+            "tokenIn": "USDC",
+            "tokenOut": "WBTC"
+          },
+          "before": {
+            "dexLevel": {
+              "tick": 115986,
+              "price": 108889.3368113009,
+              "sqrtPriceX96": "26144013560724025688081601448653",
+              "poolLiquidity": "45572151090377736859193"
+            },
+            "position": {
+              "tickLower": null,
+              "tickUpper": null,
+              "tickSpan": null
+            },
+            "rangeStatus": {
+              "isInRange": null,
+              "singleSidedExposure": null,
+              "distanceToLowerTick": null,
+              "distanceToUpperTick": null,
+              "percentInRange": null
+            },
+            "tokenComposition": {
+              "token0Pct": 51.38082609845355,
+              "token1Pct": 48.61917390154646
+            },
+            "amount0": "1.150906976677568812",
+            "amount1": "118585.630855435237264497",
+            "fees": {
+              "feeGrowthActive": false,
+              "unclaimedFees0": "0.0",
+              "unclaimedFees1": "0.0",
+              "totalUnclaimedValueInToken1": 0
+            },
+            "shareAccounting": {
+              "pricePerShare": "162.911305466248592211",
+              "tvl": 243907.12827735505,
+              "userShares": "1.224509288854717656",
+              "userShareValue": 199.4864068028697
+            }
+          },
+          "after": {
+            "dexLevel": {
+              "tick": 115986,
+              "price": 108889.33825875883,
+              "sqrtPriceX96": "26144013734489245319610805486805",
+              "poolLiquidity": "45572151090377736859193"
+            },
+            "position": {
+              "tickLower": null,
+              "tickUpper": null,
+              "tickSpan": null
+            },
+            "rangeStatus": {
+              "isInRange": null,
+              "singleSidedExposure": null,
+              "distanceToLowerTick": null,
+              "distanceToUpperTick": null,
+              "percentInRange": null
+            },
+            "tokenComposition": {
+              "token0Pct": 51.38082247961544,
+              "token1Pct": 48.61917752038456
+            },
+            "amount0": "1.1509068881790433",
+            "amount1": "118585.640491981053090576",
+            "fees": {
+              "feeGrowthActive": false,
+              "unclaimedFees0": "0.0",
+              "unclaimedFees1": "0.0",
+              "totalUnclaimedValueInToken1": 0
+            },
+            "shareAccounting": {
+              "pricePerShare": "162.911306578935295875",
+              "tvl": 243907.12994324445,
+              "userShares": "1.224509288854717656",
+              "userShareValue": 199.48640816536494
+            }
+          },
+          "deltas": {
+            "tickChange": 0,
+            "priceChangePercent": 0.0000013292926235273597,
+            "rangeStatusChanged": false,
+            "wentOutOfRange": false,
+            "cameIntoRange": false,
+            "token0CompositionShift": -0.0000036188381073998244,
+            "feeGrowthStatusChanged": false,
+            "unclaimedFeesChange": 0,
+            "pricePerShareChangePercent": 6.830015267996456e-7,
+            "tvlChangePercent": 6.830015234428903e-7,
+            "userValueChangePercent": 6.830015377050193e-7
+          },
+          "diagnostics": {
+            "inRangeButNoFeeGrowth": false,
+            "feesAccruedButPPFSUnchanged": false,
+            "positionWentOutOfRange": false
+          }
+        }
+      ]
+    },
+    {
+      "vault": "Lotus USDC-USDT",
+      "address": "0xbbbd57224d28ec578dfe4adc4f50a524804251fe",
+      "pool": "0x76d4d2BCDc79be85805BbfE7426d59ED374f8dC0",
+      "dex": "lotus",
+      "pair": "USDC/USDT",
+      "strategy": "0x7b15C5e36F82dA82464F642480946B65979A3c8E",
+      "initialState": {
+        "totalSupply": "829.605646880988761864",
+        "dexLevel": {
+          "tick": -120,
+          "price": 0.9880897624260708
+        },
+        "position": {
+          "tickLower": null,
+          "tickUpper": null,
+          "liquidity": null,
+          "tickSpan": null
+        },
+        "rangeStatus": {
+          "isInRange": null,
+          "singleSidedExposure": null,
+          "distanceToLowerTick": null,
+          "distanceToUpperTick": null,
+          "percentInRange": null
+        },
+        "tokenComposition": {
+          "token0Pct": 49.99635336931546,
+          "token1Pct": 50.00364663068454
+        },
+        "fees": {
+          "unclaimedFees0": {
+            "type": "BigNumber",
+            "hex": "0x00"
+          },
+          "unclaimedFees1": {
+            "type": "BigNumber",
+            "hex": "0x00"
+          },
+          "unclaimedFees0Formatted": "0.0",
+          "unclaimedFees1Formatted": "0.0",
+          "totalUnclaimedValueInToken1": 0,
+          "lastHarvest": {
+            "type": "BigNumber",
+            "hex": "0x694b2d06"
+          },
+          "feeGrowthActive": false
+        },
+        "shareAccounting": {
+          "pricePerShare": "1.000002047449148002",
+          "tvl": 829.6073454563636,
+          "userShares": "199.999699697065438228",
+          "userShareValue": 200.00010918628018
+        }
+      },
+      "results": [
+        {
+          "scenario": "small-up",
+          "success": true,
+          "timestamp": "2026-01-21T11:15:21.521Z",
+          "swap": {
+            "direction": "up",
+            "amount": "1.0",
+            "tokenIn": "USDC",
+            "tokenOut": "USDT"
+          },
+          "before": {
+            "dexLevel": {
+              "tick": -120,
+              "price": 0.9880897624260708,
+              "sqrtPriceX96": "78754936114776337500951411870",
+              "poolLiquidity": "599002645851514622176783"
+            },
+            "position": {
+              "tickLower": null,
+              "tickUpper": null,
+              "tickSpan": null
+            },
+            "rangeStatus": {
+              "isInRange": null,
+              "singleSidedExposure": null,
+              "distanceToLowerTick": null,
+              "distanceToUpperTick": null,
+              "percentInRange": null
+            },
+            "tokenComposition": {
+              "token0Pct": 49.99635336931546,
+              "token1Pct": 50.00364663068454
+            },
+            "amount0": "419.773016364183480858",
+            "amount1": "414.833925444202417822",
+            "fees": {
+              "feeGrowthActive": false,
+              "unclaimedFees0": "0.0",
+              "unclaimedFees1": "0.0",
+              "totalUnclaimedValueInToken1": 0
+            },
+            "shareAccounting": {
+              "pricePerShare": "1.000002047449148002",
+              "tvl": 829.6073454563636,
+              "userShares": "199.999699697065438228",
+              "userShareValue": 200.00010918628018
+            }
+          },
+          "after": {
+            "dexLevel": {
+              "tick": -120,
+              "price": 0.9880930797097934,
+              "sqrtPriceX96": "78755068315441862836662856719",
+              "poolLiquidity": "599002645851514622176783"
+            },
+            "position": {
+              "tickLower": null,
+              "tickUpper": null,
+              "tickSpan": null
+            },
+            "rangeStatus": {
+              "isInRange": null,
+              "singleSidedExposure": null,
+              "distanceToLowerTick": null,
+              "distanceToUpperTick": null,
+              "percentInRange": null
+            },
+            "tokenComposition": {
+              "token0Pct": 49.98521619152773,
+              "token1Pct": 50.01478380847226
+            },
+            "amount0": "419.67880319339253109",
+            "amount1": "414.927016670012432022",
+            "fees": {
+              "feeGrowthActive": false,
+              "unclaimedFees0": "0.0",
+              "unclaimedFees1": "0.0",
+              "totalUnclaimedValueInToken1": 0
+            },
+            "shareAccounting": {
+              "pricePerShare": "1.000003725776596131",
+              "tvl": 829.608737806292,
+              "userShares": "199.999699697065438228",
+              "userShareValue": 200.0004448512658
+            }
+          },
+          "deltas": {
+            "tickChange": 0,
+            "priceChangePercent": 0.0003357269601153112,
+            "rangeStatusChanged": false,
+            "wentOutOfRange": false,
+            "cameIntoRange": false,
+            "token0CompositionShift": -0.011137177787723829,
+            "feeGrowthStatusChanged": false,
+            "unclaimedFeesChange": 0,
+            "pricePerShareChangePercent": 0.0001678324011846056,
+            "tvlChangePercent": 0.00016783240118947894,
+            "userValueChangePercent": 0.0001678324011815188
+          },
+          "diagnostics": {
+            "inRangeButNoFeeGrowth": false,
+            "feesAccruedButPPFSUnchanged": false,
+            "positionWentOutOfRange": false
+          }
+        },
+        {
+          "scenario": "small-down",
+          "success": true,
+          "timestamp": "2026-01-21T11:16:03.597Z",
+          "swap": {
+            "direction": "down",
+            "amount": "1.0",
+            "tokenIn": "USDT",
+            "tokenOut": "USDC"
+          },
+          "before": {
+            "dexLevel": {
+              "tick": -120,
+              "price": 0.9880930797097934,
+              "sqrtPriceX96": "78755068315441862836662856719",
+              "poolLiquidity": "599002645851514622176783"
+            },
+            "position": {
+              "tickLower": null,
+              "tickUpper": null,
+              "tickSpan": null
+            },
+            "rangeStatus": {
+              "isInRange": null,
+              "singleSidedExposure": null,
+              "distanceToLowerTick": null,
+              "distanceToUpperTick": null,
+              "percentInRange": null
+            },
+            "tokenComposition": {
+              "token0Pct": 49.98521619152773,
+              "token1Pct": 50.01478380847226
+            },
+            "amount0": "419.67880319339253109",
+            "amount1": "414.927016670012432022",
+            "fees": {
+              "feeGrowthActive": false,
+              "unclaimedFees0": "0.0",
+              "unclaimedFees1": "0.0",
+              "totalUnclaimedValueInToken1": 0
+            },
+            "shareAccounting": {
+              "pricePerShare": "1.000003725776596131",
+              "tvl": 829.608737806292,
+              "userShares": "199.999699697065438228",
+              "userShareValue": 200.0004448512658
+            }
+          },
+          "after": {
+            "dexLevel": {
+              "tick": -120,
+              "price": 0.9880898019301076,
+              "sqrtPriceX96": "78754937689095786731016547796",
+              "poolLiquidity": "599002645851514622176783"
+            },
+            "position": {
+              "tickLower": null,
+              "tickUpper": null,
+              "tickSpan": null
+            },
+            "rangeStatus": {
+              "isInRange": null,
+              "singleSidedExposure": null,
+              "distanceToLowerTick": null,
+              "distanceToUpperTick": null,
+              "percentInRange": null
+            },
+            "tokenComposition": {
+              "token0Pct": 49.99622074146472,
+              "token1Pct": 50.003779258535275
+            },
+            "amount0": "419.771894419202545289",
+            "amount1": "414.835034026574246249",
+            "fees": {
+              "feeGrowthActive": false,
+              "unclaimedFees0": "0.0",
+              "unclaimedFees1": "0.0",
+              "totalUnclaimedValueInToken1": 0
+            },
+            "shareAccounting": {
+              "pricePerShare": "1.000002067437809616",
+              "tvl": 829.6073620390702,
+              "userShares": "199.999699697065438228",
+              "userShareValue": 200.0001131840065
+            }
+          },
+          "deltas": {
+            "tickChange": 0,
+            "priceChangePercent": -0.0003317278253529342,
+            "rangeStatusChanged": false,
+            "wentOutOfRange": false,
+            "cameIntoRange": false,
+            "token0CompositionShift": 0.011004549936984631,
+            "feeGrowthStatusChanged": false,
+            "unclaimedFeesChange": 0,
+            "pricePerShareChangePercent": -0.00016583326079375158,
+            "tvlChangePercent": -0.00016583326080365327,
+            "userValueChangePercent": -0.00016583326079582184
+          },
+          "diagnostics": {
+            "inRangeButNoFeeGrowth": false,
+            "feesAccruedButPPFSUnchanged": false,
+            "positionWentOutOfRange": false
+          }
+        },
+        {
+          "scenario": "large-up",
+          "success": true,
+          "timestamp": "2026-01-21T11:16:50.783Z",
+          "swap": {
+            "direction": "up",
+            "amount": "10.0",
+            "tokenIn": "USDC",
+            "tokenOut": "USDT"
+          },
+          "before": {
+            "dexLevel": {
+              "tick": -120,
+              "price": 0.9880898019301076,
+              "sqrtPriceX96": "78754937689095786731016547796",
+              "poolLiquidity": "599002645851514622176783"
+            },
+            "position": {
+              "tickLower": null,
+              "tickUpper": null,
+              "tickSpan": null
+            },
+            "rangeStatus": {
+              "isInRange": null,
+              "singleSidedExposure": null,
+              "distanceToLowerTick": null,
+              "distanceToUpperTick": null,
+              "percentInRange": null
+            },
+            "tokenComposition": {
+              "token0Pct": 49.99622074146472,
+              "token1Pct": 50.003779258535275
+            },
+            "amount0": "419.771894419202545289",
+            "amount1": "414.835034026574246249",
+            "fees": {
+              "feeGrowthActive": false,
+              "unclaimedFees0": "0.0",
+              "unclaimedFees1": "0.0",
+              "totalUnclaimedValueInToken1": 0
+            },
+            "shareAccounting": {
+              "pricePerShare": "1.000002067437809616",
+              "tvl": 829.6073620390702,
+              "userShares": "199.999699697065438228",
+              "userShareValue": 200.0001131840065
+            }
+          },
+          "after": {
+            "dexLevel": {
+              "tick": -120,
+              "price": 0.9881229750185804,
+              "sqrtPriceX96": "78756259695751040088130996291",
+              "poolLiquidity": "599002645851514622176783"
+            },
+            "position": {
+              "tickLower": null,
+              "tickUpper": null,
+              "tickSpan": null
+            },
+            "rangeStatus": {
+              "isInRange": null,
+              "singleSidedExposure": null,
+              "distanceToLowerTick": null,
+              "distanceToUpperTick": null,
+              "percentInRange": null
+            },
+            "tokenComposition": {
+              "token0Pct": 49.884849804830964,
+              "token1Pct": 50.115150195169036
+            },
+            "amount0": "418.829776982163560352",
+            "amount1": "415.765946284674388245",
+            "fees": {
+              "feeGrowthActive": false,
+              "unclaimedFees0": "0.0",
+              "unclaimedFees1": "0.0",
+              "totalUnclaimedValueInToken1": 0
+            },
+            "shareAccounting": {
+              "pricePerShare": "1.000018833841992860",
+              "tvl": 829.6212715426584,
+              "userShares": "199.999699697065438228",
+              "userShareValue": 200.00346645980815
+            }
+          },
+          "deltas": {
+            "tickChange": 0,
+            "priceChangePercent": 0.0033572948944445326,
+            "rangeStatusChanged": false,
+            "wentOutOfRange": false,
+            "cameIntoRange": false,
+            "token0CompositionShift": -0.11137093663375452,
+            "feeGrowthStatusChanged": false,
+            "unclaimedFeesChange": 0,
+            "pricePerShareChangePercent": 0.0016766369519817547,
+            "tvlChangePercent": 0.0016766369519749839,
+            "userValueChangePercent": 0.0016766369519863986
+          },
+          "diagnostics": {
+            "inRangeButNoFeeGrowth": false,
+            "feesAccruedButPPFSUnchanged": false,
+            "positionWentOutOfRange": false
+          }
+        },
+        {
+          "scenario": "large-down",
+          "success": true,
+          "timestamp": "2026-01-21T11:17:37.316Z",
+          "swap": {
+            "direction": "down",
+            "amount": "10.0",
+            "tokenIn": "USDT",
+            "tokenOut": "USDC"
+          },
+          "before": {
+            "dexLevel": {
+              "tick": -120,
+              "price": 0.9881229750185804,
+              "sqrtPriceX96": "78756259695751040088130996291",
+              "poolLiquidity": "599002645851514622176783"
+            },
+            "position": {
+              "tickLower": null,
+              "tickUpper": null,
+              "tickSpan": null
+            },
+            "rangeStatus": {
+              "isInRange": null,
+              "singleSidedExposure": null,
+              "distanceToLowerTick": null,
+              "distanceToUpperTick": null,
+              "percentInRange": null
+            },
+            "tokenComposition": {
+              "token0Pct": 49.884849804830964,
+              "token1Pct": 50.115150195169036
+            },
+            "amount0": "418.829776982163560352",
+            "amount1": "415.765946284674388245",
+            "fees": {
+              "feeGrowthActive": false,
+              "unclaimedFees0": "0.0",
+              "unclaimedFees1": "0.0",
+              "totalUnclaimedValueInToken1": 0
+            },
+            "shareAccounting": {
+              "pricePerShare": "1.000018833841992860",
+              "tvl": 829.6212715426584,
+              "userShares": "199.999699697065438228",
+              "userShareValue": 200.00346645980815
+            }
+          },
+          "after": {
+            "dexLevel": {
+              "tick": -120,
+              "price": 0.9880901964681236,
+              "sqrtPriceX96": "78754953412268767393171283328",
+              "poolLiquidity": "599002645851514622176783"
+            },
+            "position": {
+              "tickLower": null,
+              "tickUpper": null,
+              "tickSpan": null
+            },
+            "rangeStatus": {
+              "isInRange": null,
+              "singleSidedExposure": null,
+              "distanceToLowerTick": null,
+              "distanceToUpperTick": null,
+              "percentInRange": null
+            },
+            "tokenComposition": {
+              "token0Pct": 49.994896149806195,
+              "token1Pct": 50.0051038501938
+            },
+            "amount0": "419.760689240263702348",
+            "amount1": "414.846105751822953296",
+            "fees": {
+              "feeGrowthActive": false,
+              "unclaimedFees0": "0.0",
+              "unclaimedFees1": "0.0",
+              "totalUnclaimedValueInToken1": 0
+            },
+            "shareAccounting": {
+              "pricePerShare": "1.000002267067308992",
+              "tvl": 829.6075276528302,
+              "userShares": "199.999699697065438228",
+              "userShareValue": 200.00015310984642
+            }
+          },
+          "deltas": {
+            "tickChange": 0,
+            "priceChangePercent": -0.0033172541561626956,
+            "rangeStatusChanged": false,
+            "wentOutOfRange": false,
+            "cameIntoRange": false,
+            "token0CompositionShift": 0.11004634497523114,
+            "feeGrowthStatusChanged": false,
+            "unclaimedFeesChange": 0,
+            "pricePerShareChangePercent": -0.001656646267372787,
+            "tvlChangePercent": -0.0016566462673580492,
+            "userValueChangePercent": -0.0016566462673761255
+          },
+          "diagnostics": {
+            "inRangeButNoFeeGrowth": false,
+            "feesAccruedButPPFSUnchanged": false,
+            "positionWentOutOfRange": false
+          }
+        }
+      ]
+    }
+  ],
+  "summary": {
+    "total": 12,
+    "passed": 12,
+    "failed": 0
+  },
+  "diagnostics": []
+}
