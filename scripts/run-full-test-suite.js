@@ -11,10 +11,20 @@ const { execSync } = require('child_process');
 const fs = require('fs');
 const path = require('path');
 
-// Test configuration
+// Test configuration - using only pools that exist on testnet
+// QuickSwap pools: USDC/USDT
+// Lotus pools: WETH/USDT, USDC/USDT, WBTC/USDC
 const TEST_CONFIG = {
   dexes: ['quickswap', 'lotus'],
-  pairs: ['WETH/USDC', 'WETH/USDT', 'WBTC/WETH', 'USDC/USDT'],
+  // Pair availability by DEX:
+  // - USDC/USDT: both
+  // - WETH/USDT: lotus only
+  // - WBTC/USDC: lotus only
+  pairsByDex: {
+    quickswap: ['USDC/USDT'],
+    lotus: ['WETH/USDT', 'USDC/USDT', 'WBTC/USDC']
+  },
+  pairs: ['USDC/USDT', 'WETH/USDT', 'WBTC/USDC'],
   scenarios: [
     'small-up',
     'small-down',
@@ -198,7 +208,10 @@ async function runTests() {
     console.log(`🔄 Testing ${dex.toUpperCase()}`);
     console.log(`${'━'.repeat(80)}\n`);
 
-    for (const pair of TEST_CONFIG.pairs) {
+    // Get pairs available for this DEX
+    const availablePairs = TEST_CONFIG.pairsByDex[dex] || TEST_CONFIG.pairs;
+    
+    for (const pair of availablePairs) {
       // Skip pairs with placeholder addresses
       if (pair.includes('MATIC') || pair.includes('DAI')) {
         console.log(`⏭️  Skipping ${pair} (not configured)\n`);
@@ -209,7 +222,7 @@ async function runTests() {
 
       for (const scenario of TEST_CONFIG.scenarios) {
         const testName = `${dex}-${pair}-${scenario}`;
-        const command = `node scripts/price-mover.js ${dex} ${pair} ${scenario}`;
+        const command = `HARDHAT_NETWORK=testnet node scripts/price-mover.js ${dex} ${pair} ${scenario}`;
 
         results.summary.total++;
 
@@ -256,7 +269,7 @@ async function runTests() {
     results.summary.total++;
 
     const result = runCommand(
-      `node scripts/price-mover.js both ${test.pair} ${test.scenario}`,
+      `HARDHAT_NETWORK=testnet node scripts/price-mover.js both ${test.pair} ${test.scenario}`,
       `BOTH DEXs | ${test.pair} | ${test.scenario}`
     );
 

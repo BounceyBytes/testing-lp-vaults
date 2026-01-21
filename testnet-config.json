@@ -1,5 +1,12 @@
 {
   "network": "testnet",
+  "vaults": {
+    "_note": "LP Vault (CLM) contract addresses to test",
+    "vault1": "0xd1ea7f32f9530eac27b314454db4964dbc08cdca",
+    "vault2": "0x1e27612d5240d25b70608cdabe1446e67ae7c48f",
+    "vault3": "0xacd6e64e56f66e4f010709d54686792ea96b7230",
+    "vault4": "0xbbbd57224d28ec578dfe4adc4f50a524804251fe"
+  },
   "quickswap": {
     "factory": "0x10253594A832f967994b44f33411940533302ACb",
     "positionManager": "0x69D57B9D705eaD73a5d2f2476C30c55bD755cc2F",
@@ -13,8 +20,19 @@
     "swapRouter": "0xae52Aa627D6eFAce03Fecd41a79DEEcbc168cb0c",
     "nonfungiblePositionManager": "0x84fb9302f2232050bB30D0C15Cef44823153De6f"
   },
+  "pools": {
+    "_note": "Verified active pools on Dukong testnet (discovered 2026-01-21)",
+    "quickswap": {
+      "USDC_USDT": "0xCA04b07be9Bd8773385B2ae257Dbfc44bcEF60Ef"
+    },
+    "lotus": {
+      "WETH_USDT": "0x16614FCF1b082e021349F7Dc5aFE22d96641e71C",
+      "USDC_USDT": "0x76d4d2BCDc79be85805BbfE7426d59ED374f8dC0",
+      "WBTC_USDC": "0xfD6B4B088f8A73A03AedbB87A4631A317cB97147"
+    }
+  },
   "tokens": {
-    "WETH": "0x1398471040295884df72Bf1805e2720D2c5ae4728",
+    "WETH": "0x139847104029584df72Bf1805e2720D2c5ae4728",
     "USDC": "0xDcc8a320dc2Ce505bB37DAb4b47ECE8E3ad1864F",
     "USDT": "0xCDb248d19195e23a4cdffCa8a67dD8c7f97000D9",
     "WBTC": "0x2A8E20Ba7aB3C3A90527EF0d2d970fd22f7C25AB",
@@ -25,7 +43,7 @@
     "name": "Dukong Testnet",
     "explorer": "https://explorer.dukong.io",
     "chainId": 5887,
-    "rpcUrl": "https://rpc.dukong.mantrachain.io",
+    "rpcUrl": "https://evm.dukong.mantrachain.io",
     "currency": "OM"
   },
   "dapp": {
@@ -43,7 +61,7 @@
       "name": "WETH/USDT",
       "token0": "WETH",
       "token1": "USDT",
-      "feeTier": 3000
+      "feeTier": 500
     },
     {
       "name": "WBTC/WETH",
@@ -61,6 +79,12 @@
       "name": "USDC/USDT",
       "token0": "USDC",
       "token1": "USDT",
+      "feeTier": 500
+    },
+    {
+      "name": "WBTC/USDC",
+      "token0": "WBTC",
+      "token1": "USDC",
       "feeTier": 500
     },
     {

@@ -12,12 +12,16 @@ const fs = require('fs');
 const path = require('path');
 
 const QUICK_TESTS = [
-  { dex: 'quickswap', pair: 'WETH/USDC', scenario: 'small-up', description: 'QuickSwap small upward move' },
-  { dex: 'quickswap', pair: 'WETH/USDC', scenario: 'small-down', description: 'QuickSwap small downward move' },
-  { dex: 'lotus', pair: 'WETH/USDC', scenario: 'small-up', description: 'Lotus small upward move' },
-  { dex: 'lotus', pair: 'WETH/USDC', scenario: 'small-down', description: 'Lotus small downward move' },
-  { dex: 'quickswap', pair: 'WETH/USDC', scenario: 'out-of-range-up', description: 'QuickSwap rebalance test' },
-  { dex: 'lotus', pair: 'WETH/USDC', scenario: 'out-of-range-up', description: 'Lotus rebalance test' }
+  // QuickSwap - only USDC/USDT pool exists
+  { dex: 'quickswap', pair: 'USDC/USDT', scenario: 'small-up', description: 'QuickSwap USDC/USDT small upward move' },
+  { dex: 'quickswap', pair: 'USDC/USDT', scenario: 'small-down', description: 'QuickSwap USDC/USDT small downward move' },
+  { dex: 'quickswap', pair: 'USDC/USDT', scenario: 'out-of-range-up', description: 'QuickSwap USDC/USDT rebalance test' },
+  // Lotus - WETH/USDT, USDC/USDT, WBTC/USDC pools exist
+  { dex: 'lotus', pair: 'WETH/USDT', scenario: 'small-up', description: 'Lotus WETH/USDT small upward move' },
+  { dex: 'lotus', pair: 'WETH/USDT', scenario: 'small-down', description: 'Lotus WETH/USDT small downward move' },
+  { dex: 'lotus', pair: 'WETH/USDT', scenario: 'out-of-range-up', description: 'Lotus WETH/USDT rebalance test' },
+  { dex: 'lotus', pair: 'USDC/USDT', scenario: 'small-up', description: 'Lotus USDC/USDT small upward move' },
+  { dex: 'lotus', pair: 'WBTC/USDC', scenario: 'small-up', description: 'Lotus WBTC/USDC small upward move' }
 ];
 
 const results = {
@@ -33,7 +37,7 @@ function runTest(test) {
   console.log(`   DEX: ${test.dex} | Pair: ${test.pair} | Scenario: ${test.scenario}`);
   console.log(`${'='.repeat(80)}\n`);
 
-  const command = `node scripts/price-mover.js ${test.dex} ${test.pair} ${test.scenario}`;
+  const command = `HARDHAT_NETWORK=testnet node scripts/price-mover.js ${test.dex} ${test.pair} ${test.scenario}`;
   const startTime = Date.now();
 
   try {
