@@ -116,7 +116,7 @@ const STRATEGY_ABI = [
   "function lpToken1() view returns (address)",
   "function price() view returns (uint256)",
   "function tick() view returns (int24)",
-  "function range() view returns (uint256)",
+  "function range() view returns (int24 lowerTick, int24 upperTick)",
   "function twap() view returns (int56)",
   // Fee tracking
   "function fees0() view returns (uint256)",
@@ -347,30 +347,44 @@ class VaultTester {
       }
       
       // ========== GET POSITION INFO (Tick Boundaries) ==========
-      try {
-        const [tickLower, tickUpper, liquidity] = await vault.positionMain();
-        state.position.tickLower = tickLower;
-        state.position.tickUpper = tickUpper;
-        state.position.liquidity = liquidity;
-        state.position.tickSpan = tickUpper - tickLower;
-      } catch {
+      // Try strategy.range() first (this is where Beefy CLM vaults store tick info)
+      if (state.strategy) {
+        const strategy = new ethers.Contract(state.strategy, STRATEGY_ABI, this.signer);
         try {
-          const [lowerTick, upperTick] = await vault.range();
-          state.position.tickLower = lowerTick;
-          state.position.tickUpper = upperTick;
-          state.position.tickSpan = upperTick - lowerTick;
+          const [tickLower, tickUpper] = await strategy.range();
+          // Handle potentially inverted ranges (some contracts return upper, lower)
+          const actualLower = tickLower < tickUpper ? tickLower : tickUpper;
+          const actualUpper = tickLower < tickUpper ? tickUpper : tickLower;
+          state.position.tickLower = actualLower;
+          state.position.tickUpper = actualUpper;
+          state.position.tickSpan = actualUpper - actualLower;
         } catch {
-          // Try strategy
-          if (state.strategy) {
-            const strategy = new ethers.Contract(state.strategy, STRATEGY_ABI, this.signer);
-            try {
-              const [tickLower, tickUpper, liquidity] = await strategy.positionMain();
-              state.position.tickLower = tickLower;
-              state.position.tickUpper = tickUpper;
-              state.position.liquidity = liquidity;
-              state.position.tickSpan = tickUpper - tickLower;
-            } catch {}
-          }
+          // Try positionMain on strategy
+          try {
+            const [tickLower, tickUpper, liquidity] = await strategy.positionMain();
+            state.position.tickLower = tickLower;
+            state.position.tickUpper = tickUpper;
+            state.position.liquidity = liquidity;
+            state.position.tickSpan = tickUpper - tickLower;
+          } catch {}
+        }
+      }
+      
+      // Fallback: try vault methods if strategy didn't work
+      if (state.position.tickLower === null) {
+        try {
+          const [tickLower, tickUpper, liquidity] = await vault.positionMain();
+          state.position.tickLower = tickLower;
+          state.position.tickUpper = tickUpper;
+          state.position.liquidity = liquidity;
+          state.position.tickSpan = tickUpper - tickLower;
+        } catch {
+          try {
+            const [lowerTick, upperTick] = await vault.range();
+            state.position.tickLower = lowerTick;
+            state.position.tickUpper = upperTick;
+            state.position.tickSpan = upperTick - lowerTick;
+          } catch {}
         }
       }
       
