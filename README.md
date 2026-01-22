@@ -88,6 +88,195 @@ node scripts/batch-price-scenarios.js
 3. Follow the workflows in `DAPP_TESTING_GUIDE.md`
 4. Use price mover scripts to create different market conditions
 
+---
+
+## 🧪 CLM Vault Comprehensive Testing
+
+### Quick Command
+
+```bash
+npm run test-vaults
+```
+
+This runs the comprehensive CLM vault test suite against all deployed vaults, executing price movement scenarios and tracking detailed metrics.
+
+### What It Tests
+
+The test suite executes swap scenarios on each vault and tracks how the vault responds:
+
+| Scenario | Description | Swap Size |
+|----------|-------------|-----------|
+| `small-up` | Small price increase | 0.01 ETH / 1 USDC |
+| `small-down` | Small price decrease | 0.01 ETH / 1 USDC |
+| `large-up` | Large price increase | 0.1 ETH / 10 USDC |
+| `large-down` | Large price decrease | 0.1 ETH / 10 USDC |
+
+### Vaults Under Test
+
+| Vault | Address | DEX | Pair |
+|-------|---------|-----|------|
+| Lotus WETH-USDT | `0x1e27612d5240d25b70608cdabe1446e67ae7c48f` | Lotus | WETH/USDT |
+| Lotus WBTC-USDC | `0xacd6e64e56f66e4f010709d54686792ea96b7230` | Lotus | WBTC/USDC |
+| Lotus USDC-USDT | `0xbbbd57224d28ec578dfe4adc4f50a524804251fe` | Lotus | USDC/USDT |
+| QuickSwap USDC-USDT | `0xd1ea7f32f9530eac27b314454db4964dbc08cdca` | QuickSwap | USDC/USDT (⚠️ skipped) |
+
+### Metrics Tracked
+
+The test suite captures comprehensive CLM vault metrics before and after each swap:
+
+#### 1. DEX-Level Price & Ticks (Ground Truth)
+
+| Metric | Description |
+|--------|-------------|
+| `dexLevel.tick` | Current pool tick |
+| `dexLevel.price` | Current price derived from sqrtPriceX96 |
+| `position.tickLower` | Position's lower tick boundary |
+| `position.tickUpper` | Position's upper tick boundary |
+| `position.tickSpan` | Range width (upperTick - lowerTick) |
+
+#### 2. Range Status (In-Range / Out-of-Range)
+
+| Metric | Description |
+|--------|-------------|
+| `rangeStatus.isInRange` | Whether current tick is within position |
+| `rangeStatus.singleSidedExposure` | `"token0_only"`, `"token1_only"`, or `"both"` |
+| `rangeStatus.distanceToLowerTick` | Ticks from lower boundary |
+| `rangeStatus.distanceToUpperTick` | Ticks from upper boundary |
+| `rangeStatus.percentInRange` | Position within range (0-100%) |
+
+#### 3. Token Composition
+
+| Metric | Description |
+|--------|-------------|
+| `tokenComposition.token0Pct` | % of vault value in token0 |
+| `tokenComposition.token1Pct` | % of vault value in token1 |
+| `amount0` / `amount1` | Raw token balances in vault |
+
+#### 4. Fee Accrual & Compounding
+
+| Metric | Description |
+|--------|-------------|
+| `fees.feeGrowthActive` | `true` if in-range (earning fees), `false` if out |
+| `fees.unclaimedFees0` / `fees.unclaimedFees1` | Pending unclaimed fees |
+| `fees.totalUnclaimedValueInToken1` | Total unclaimed fees in token1 terms |
+
+#### 5. Share Accounting
+
+| Metric | Description |
+|--------|-------------|
+| `shareAccounting.pricePerShare` | PPFS (Price Per Full Share) |
+| `shareAccounting.tvl` | Total Value Locked in token1 terms |
+| `shareAccounting.userShares` | Your share balance (should stay constant) |
+| `shareAccounting.userShareValue` | Your share value (changes with price/fees) |
+
+#### 6. Deltas (Changes After Swap)
+
+| Metric | Description |
+|--------|-------------|
+| `deltas.tickChange` | Tick movement |
+| `deltas.priceChangePercent` | Price % change |
+| `deltas.token0CompositionShift` | Composition shift in token0 % |
+| `deltas.pricePerShareChangePercent` | PPFS % change |
+| `deltas.tvlChangePercent` | TVL % change |
+| `deltas.userValueChangePercent` | User value % change |
+
+#### 7. Diagnostics (Bug Detection)
+
+| Flag | Detects |
+|------|---------|
+| `diagnostics.inRangeButNoFeeGrowth` | Fees not accruing while in-range → **bug** |
+| `diagnostics.positionWentOutOfRange` | Price crossed boundary → **warning** |
+| `diagnostics.rangeStatusChanged` | Position crossed in/out of range |
+
+### Sample Output
+
+```
+════════════════════════════════════════════════════════════════════════════════
+📊 Testing: Lotus WETH-USDT
+   Vault: 0x1e27612d5240d25b70608cdabe1446e67ae7c48f
+   Pool: 0x16614FCF1b082e021349F7Dc5aFE22d96641e71C
+════════════════════════════════════════════════════════════════════════════════
+
+  📈 INITIAL STATE:
+    ══════════════════════════════════════════════════════════
+    📍 DEX-LEVEL PRICE & TICKS (Ground Truth)
+    ══════════════════════════════════════════════════════════
+      Current Tick: 83140
+      Current Price: 4079.08562656 USDT/WETH
+      Position Lower Tick: -1963632
+      Position Upper Tick: 1349380
+      Tick Span: 3313012 ticks
+    ──────────────────────────────────────────────────────────
+    📊 RANGE STATUS
+      Status: ✅ IN RANGE (earning fees)
+      Exposure: Both tokens (WETH + USDT)
+      Distance to Lower: 2046772 ticks
+      Distance to Upper: 1266240 ticks
+      Position in Range: 61.78%
+    ──────────────────────────────────────────────────────────
+    💰 TOKEN BALANCES & COMPOSITION
+      WETH: 10.484451
+      USDT: 42235.473401
+      Composition: 50.31% WETH / 49.69% USDT
+    ──────────────────────────────────────────────────────────
+    💸 FEE ACCRUAL
+      Fee Growth: ✅ ACTIVE (in range)
+      Unclaimed WETH: 0.00000000
+      Unclaimed USDT: 0.00000000
+    ──────────────────────────────────────────────────────────
+    📈 SHARE ACCOUNTING
+      Total Supply: 171820.738200 shares
+      Price Per Share (PPFS): 0.49471587
+      Total TVL: 85002.45 USDT
+      Your Shares: 404.036278
+      Your Value: 199.883158 USDT
+
+  🧪 Scenario: large-up
+    Swapping 0.1 WETH → USDT
+    ✅ Swap successful!
+
+    📊 CHANGES AFTER SWAP:
+      Tick: 83140 → 83136 (-4)
+      Price: 4079.08 → 4077.66 (-0.0318%)
+      WETH Composition: 50.31% → 50.41% (+0.09%)
+      PPFS: 0.49471 → 0.49463 (-0.016%)
+      Your Value: 199.88 → 199.85 USDT (-0.016%)
+
+  ✅ large-up PASSED
+```
+
+### Test Results
+
+Results are saved to `test-results/clm-vault-test-<timestamp>.json` with full metric data for each scenario.
+
+### Known Limitations
+
+| Limitation | Description |
+|------------|-------------|
+| **QuickSwap Skipped** | The Algebra router requires a `deployer` parameter that differs from standard UniV3. QuickSwap vault tests are currently skipped pending interface investigation. |
+| **Unclaimed Fees Always 0** | The vaults may auto-compound fees, or the fee tracking contract methods differ. Fees show as 0 in the current implementation. |
+| **Extremely Wide Tick Ranges** | Current testnet vaults have ranges of ±7M ticks (essentially infinite). This means out-of-range scenarios cannot be tested without massive price swings. |
+| **No Harvest Testing** | The test doesn't call `harvest()` to trigger fee compounding. PPFS changes from fees would only be visible after harvest. |
+| **Rebalancer Not Active** | The `moveTicks()` rebalancing function requires an authorized rebalancer bot which may not be running on testnet. |
+
+### Tick Math Reference
+
+In Algebra V4 / Uniswap V3 pools:
+
+```
+price = 1.0001^tick
+```
+
+| Tick | Price | Change |
+|------|-------|--------|
+| 0 | 1.0000 | 0% |
+| 100 | 1.0100 | +1% |
+| 1,000 | 1.1052 | +10.5% |
+| 10,000 | 2.7181 | +172% |
+| 887,272 | 3.4×10³⁸ | MAX_TICK |
+
+**1 tick = 0.01% price change (1 basis point)**
+
 ## 🚀 Quick Start (TypeScript Bot)
 
 ```bash
@@ -311,9 +500,129 @@ For issues or questions:
 
 ---
 
+## 📐 Recommended CLM Vault Configurations
+
+Based on analysis of the LP_Vaults codebase, here are recommended configurations for different pair types:
+
+### 1. mantraUSD/USDC (New Stable + Major Stable)
+
+```json
+{
+  "pair": "mantraUSD/USDC",
+  "riskProfile": "medium",
+  "strategyConfig": {
+    "positionWidth": 50,
+    "maxTickDeviation": 40,
+    "maxHarvestTickDeviation": 20,
+    "twapInterval": 600,
+    "feeTier": 100
+  },
+  "rebalancer": {
+    "checkInterval": "24h",
+    "triggerThreshold": "0.5%"
+  },
+  "harvester": {
+    "minInterval": "6h",
+    "checkInterval": "12h"
+  }
+}
+```
+
+### 2. USDC/USDT (Major Stable + Major Stable)
+
+```json
+{
+  "pair": "USDC/USDT",
+  "riskProfile": "low",
+  "strategyConfig": {
+    "positionWidth": 10,
+    "maxTickDeviation": 15,
+    "maxHarvestTickDeviation": 10,
+    "twapInterval": 600,
+    "feeTier": 100
+  },
+  "rebalancer": {
+    "checkInterval": "168h",
+    "triggerThreshold": "0.05%"
+  },
+  "harvester": {
+    "minInterval": "24h",
+    "checkInterval": "48h"
+  }
+}
+```
+
+### 3. mantraUSD/MANTRA (New Stable + Volatile Token)
+
+```json
+{
+  "pair": "mantraUSD/MANTRA",
+  "riskProfile": "high",
+  "strategyConfig": {
+    "positionWidth": 300,
+    "maxTickDeviation": 200,
+    "maxHarvestTickDeviation": 100,
+    "twapInterval": 1800,
+    "feeTier": 3000
+  },
+  "rebalancer": {
+    "checkInterval": "1h",
+    "triggerThreshold": "5%",
+    "critical": true
+  },
+  "harvester": {
+    "minInterval": "2h",
+    "checkInterval": "4h"
+  },
+  "warnings": [
+    "High IL risk - rebalancer MUST be running",
+    "Consider lower TVL cap until battle-tested"
+  ]
+}
+```
+
+### Configuration Summary
+
+| Parameter | mantraUSD/USDC | USDC/USDT | mantraUSD/MANTRA |
+|-----------|----------------|-----------|------------------|
+| `positionWidth` | 50 | 10 | 300 |
+| `maxTickDeviation` | 40 | 15 | 200 |
+| `twapInterval` | 600s | 600s | 1800s |
+| `feeTier` | 0.01% | 0.01% | 0.3% |
+| **Rebalance Check** | 24h | Weekly | **1h** |
+
+---
+
+## 🏗️ CLM Vault Architecture Notes
+
+The deployed CLM vaults use a **dual-position system**:
+
+1. **positionMain** - 50/50 balanced position centered on current tick
+2. **positionAlt** - Single-sided position for excess tokens
+
+### Key Features
+
+| Feature | Status | Notes |
+|---------|--------|-------|
+| Fee Collection | ✅ Implemented | Via `_claimEarnings()` |
+| Auto-Compounding | ✅ Implemented | Fees re-added as liquidity after harvest |
+| Rebalancing | ⚠️ Manual | Requires authorized rebalancer to call `moveTicks()` |
+| Multi-Band | ❌ Not Supported | Only 2 positions (main + alt) |
+
+### Important Functions
+
+| Function | Who Can Call | Purpose |
+|----------|--------------|---------|
+| `harvest()` | Anyone (gets call fee) | Collect fees, charge protocol fees, recompound |
+| `moveTicks()` | Authorized rebalancers only | Recenter position around current tick |
+| `deposit()` | Anyone | Add liquidity to vault |
+| `withdraw()` | Share holders | Remove liquidity proportionally |
+
+---
+
 **Network**: Dukong Testnet
-**Last Updated**: 2026-01-18
-**Version**: 1.0
+**Last Updated**: 2026-01-22
+**Version**: 2.0
 **Status**: Ready for Testing
 
 ## Quick Links
@@ -324,3 +633,4 @@ For issues or questions:
 - 🎮 [Price Mover Guide](./PRICE_MOVER_README.md)
 - 🖥️ [DApp Testing Guide](./DAPP_TESTING_GUIDE.md)
 - 🤖 [Quickswap Bot](./quickswap-bot/README.md)
+- 🧪 [CLM Vault Source](https://github.com/protofire/LP_Vaults)
