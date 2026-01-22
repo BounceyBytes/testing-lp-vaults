@@ -159,7 +159,8 @@ const QUICKSWAP_ROUTER_ABI = [
   "function exactInputSingle((address tokenIn, address tokenOut, address deployer, address recipient, uint256 deadline, uint256 amountIn, uint256 amountOutMinimum, uint160 limitSqrtPrice)) payable returns (uint256 amountOut)"
 ];
 
-const QUICKSWAP_POOL_DEPLOYER = "0x10253594A832f967994b44f33411940533302ACb";
+// AlgebraPoolDeployer address - NOT the factory! The factory is 0x10253594A832f967994b44f33411940533302ACb
+const QUICKSWAP_POOL_DEPLOYER = "0xd7cB0E0692f2D55A17bA81c1fE5501D66774fC4A";
 
 // Lotus (UniV3) router ABI
 const LOTUS_ROUTER_ABI = [
@@ -1109,11 +1110,7 @@ async function main() {
   const extendedScenarios = ["small-up", "small-down", "large-up", "large-down"];
   
   for (const vaultConfig of VAULT_CONFIGS) {
-    if (vaultConfig.dex === "quickswap") {
-      console.log(`\n⏭️  Skipping ${vaultConfig.name} - QuickSwap pool interface requires investigation`);
-      continue;
-    }
-    
+    // QuickSwap now supported with correct AlgebraPoolDeployer address
     await tester.testVault(vaultConfig, extendedScenarios);
   }
   
