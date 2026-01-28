@@ -38,5 +38,5 @@ Thumbs.db
 # Testing
 .testdata/
 
-# Local test outputs (older historical results may already be tracked)
-test-results/*.json
+# Local test outputs
+test-results/
