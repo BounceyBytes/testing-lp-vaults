@@ -1,7 +1,8 @@
 /**
  * Pool Fee Checker
  * 
- * Checks the actual fee tiers of pools on Lotus and QuickSwap
+ * Checks the actual fee tiers of pools used by the narrowed vault tests
+ * (Lotus USDC/mUSD + Lotus USDT/USDC).
  */
 
 const { ethers } = require("hardhat");
@@ -16,24 +17,14 @@ const UNIV3_POOL_ABI = [
   "function token1() view returns (address)"
 ];
 
-// Algebra-style pool ABI (QuickSwap)
-const ALGEBRA_POOL_ABI = [
-  "function globalState() view returns (uint160 price, int24 tick, uint16 fee, uint16, uint8, uint8, bool)",
-  "function liquidity() view returns (uint128)",
-  "function token0() view returns (address)",
-  "function token1() view returns (address)"
-];
-
 const ERC20_ABI = [
   "function symbol() view returns (string)",
   "function decimals() view returns (uint8)"
 ];
 
 const POOLS = [
-  { name: "QuickSwap USDC/USDT", address: config.pools.quickswap.USDC_USDT, dex: "quickswap" },
-  { name: "Lotus WETH/USDT", address: config.pools.lotus.WETH_USDT, dex: "lotus" },
-  { name: "Lotus USDC/USDT", address: config.pools.lotus.USDC_USDT, dex: "lotus" },
-  { name: "Lotus WBTC/USDC", address: config.pools.lotus.WBTC_USDC, dex: "lotus" }
+  { name: "Lotus USDC/mUSD", address: config.pools.lotus.USDC_mUSD, dex: "lotus" },
+  { name: "Lotus USDT/USDC", address: config.pools.lotus.USDT_USDC, dex: "lotus" }
 ];
 
 async function checkPool(provider, pool) {
@@ -71,45 +62,6 @@ async function checkPool(provider, pool) {
     } catch (e) {
       console.log(`  ❌ Error reading pool: ${e.message}`);
       return null;
-    }
-  } else {
-    // Try Algebra-style (QuickSwap)
-    const contract = new ethers.Contract(pool.address, ALGEBRA_POOL_ABI, provider);
-    
-    try {
-      const [price, tick, fee] = await contract.globalState();
-      console.log(`  Fee (from globalState): ${fee} (${fee / 100}%)`);
-      console.log(`  Current Tick: ${tick}`);
-      console.log(`  Price: ${price.toString()}`);
-      
-      const liquidity = await contract.liquidity();
-      console.log(`  Liquidity: ${liquidity.toString()}`);
-      
-      const token0 = await contract.token0();
-      const token1 = await contract.token1();
-      
-      const t0 = new ethers.Contract(token0, ERC20_ABI, provider);
-      const t1 = new ethers.Contract(token1, ERC20_ABI, provider);
-      
-      const [sym0, sym1] = await Promise.all([t0.symbol(), t1.symbol()]);
-      console.log(`  Token0: ${sym0} (${token0})`);
-      console.log(`  Token1: ${sym1} (${token1})`);
-      
-      return { fee, tick, liquidity: liquidity.toString() };
-    } catch (e) {
-      console.log(`  ❌ Error reading Algebra pool: ${e.message}`);
-      
-      // Try UniV3 style as fallback
-      console.log(`  Trying UniV3 ABI as fallback...`);
-      const fallback = new ethers.Contract(pool.address, UNIV3_POOL_ABI, provider);
-      try {
-        const fee = await fallback.fee();
-        console.log(`  Fee (UniV3): ${fee} (${fee / 10000}%)`);
-        return { fee, type: "univ3" };
-      } catch (e2) {
-        console.log(`  ❌ UniV3 fallback also failed: ${e2.message}`);
-        return null;
-      }
     }
   }
 }

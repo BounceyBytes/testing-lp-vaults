@@ -1,8 +1,9 @@
 /**
  * Batch Price Scenario Runner
  *
- * Runs multiple price movement scenarios across different pairs and DEXs
- * to comprehensively test LP vault behavior.
+ * Runs multiple price movement scenarios for the narrowed vault pairs:
+ * - Lotus USDC/mUSD
+ * - Lotus USDT/USDC
  *
  * Usage:
  *   node scripts/batch-price-scenarios.js
@@ -14,44 +15,28 @@ const config = require("../testnet-config.json");
 
 const scenarios = [
   {
-    name: "Initial Small Moves",
+    name: "Initial Small Moves (Lotus)",
     tests: [
-      { dex: "quickswap", pair: "WETH/USDC", action: "small-up" },
-      { dex: "quickswap", pair: "WETH/USDC", action: "small-down" },
-      { dex: "lotus", pair: "WETH/USDC", action: "small-up" },
-      { dex: "lotus", pair: "WETH/USDC", action: "small-down" },
+      { dex: "lotus", pair: "USDT/USDC", action: "small-up" },
+      { dex: "lotus", pair: "USDT/USDC", action: "small-down" },
+      { dex: "lotus", pair: "USDC/mUSD", action: "small-up" },
+      { dex: "lotus", pair: "USDC/mUSD", action: "small-down" }
     ]
   },
   {
-    name: "Rebalance Testing",
+    name: "Rebalance Testing (Lotus)",
     tests: [
-      { dex: "quickswap", pair: "WETH/USDC", action: "out-of-range-up" },
-      { dex: "quickswap", pair: "WETH/USDC", action: "out-of-range-down" },
-      { dex: "lotus", pair: "WETH/USDT", action: "out-of-range-up" },
-      { dex: "lotus", pair: "WETH/USDT", action: "out-of-range-down" },
+      { dex: "lotus", pair: "USDT/USDC", action: "out-of-range-up" },
+      { dex: "lotus", pair: "USDT/USDC", action: "out-of-range-down" },
+      { dex: "lotus", pair: "USDC/mUSD", action: "out-of-range-up" },
+      { dex: "lotus", pair: "USDC/mUSD", action: "out-of-range-down" }
     ]
   },
   {
-    name: "Volatility Testing",
+    name: "Volatility Testing (Lotus)",
     tests: [
-      { dex: "quickswap", pair: "WETH/USDC", action: "volatility" },
-      { dex: "lotus", pair: "WBTC/WETH", action: "volatility" },
-    ]
-  },
-  {
-    name: "Gradual Drift Testing",
-    tests: [
-      { dex: "quickswap", pair: "WETH/USDC", action: "gradual-up" },
-      { dex: "lotus", pair: "WETH/USDC", action: "gradual-down" },
-    ]
-  },
-  {
-    name: "Stablecoin Pair Testing",
-    tests: [
-      { dex: "quickswap", pair: "USDC/USDT", action: "small-up" },
-      { dex: "quickswap", pair: "USDC/USDT", action: "small-down" },
-      { dex: "lotus", pair: "DAI/USDC", action: "small-up" },
-      { dex: "lotus", pair: "DAI/USDC", action: "small-down" },
+      { dex: "lotus", pair: "USDT/USDC", action: "volatility" },
+      { dex: "lotus", pair: "USDC/mUSD", action: "volatility" }
     ]
   }
 ];

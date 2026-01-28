@@ -2,10 +2,19 @@
   "network": "testnet",
   "vaults": {
     "_note": "LP Vault (CLM) contract addresses to test",
-    "vault1": "0xd1ea7f32f9530eac27b314454db4964dbc08cdca",
-    "vault2": "0x1e27612d5240d25b70608cdabe1446e67ae7c48f",
-    "vault3": "0xacd6e64e56f66e4f010709d54686792ea96b7230",
-    "vault4": "0xbbbd57224d28ec578dfe4adc4f50a524804251fe"
+    "vault_usdc_musd": "0xe57b332f9FCBCD42fF50035C8c8c65455faa14C0",
+    "vault_usdt_usdc": "0xA696dF729D59f2aC075a5ecFb8245729Dc806a64",
+    "vault_wom_musd": "0x8E6B5AAF7B94A3A6e863dA3A0b5b4143e6BdBefe",
+    "vault_usdt_musd": "0x34745Aa3B21732Cb2eaA0D01A0c197aEf43Cb06f",
+    "vault_wom_usdc": "0xaf16aca33A68eC9b46dEcA9378BF4748dbd9FBF8"
+  },
+  "strategies": {
+    "_note": "Expected strategy addresses for each vault (optional sanity check; tests can also read vault.strategy() on-chain)",
+    "strategy_usdc_musd": "0xcf3e7966eD09FEFFee0Ae2eD847D40b9a9948276",
+    "strategy_usdt_usdc": "0x1f9C7Bc28A9AdB8bB5360aE6ED65F01A6Aa7B3B3",
+    "strategy_wom_musd": "0x7b0dDE449caD0C9Df4EE42d022501530c7f4Ef4f",
+    "strategy_usdt_musd": "0x43fb46eE0090De87617ceDDe8a9Cb96E81e79E18",
+    "strategy_wom_usdc": "0x6E2A0418465A8E7AF244Efa1731D472e76797e56"
   },
   "quickswap": {
     "factory": "0x10253594A832f967994b44f33411940533302ACb",
@@ -22,21 +31,24 @@
     "nonfungiblePositionManager": "0x84fb9302f2232050bB30D0C15Cef44823153De6f"
   },
   "pools": {
-    "_note": "Verified active pools on Dukong testnet (discovered 2026-01-21)",
-    "quickswap": {
-      "USDC_USDT": "0xCA04b07be9Bd8773385B2ae257Dbfc44bcEF60Ef"
-    },
+    "_note": "Pools used by the vault test suite",
     "lotus": {
-      "WETH_USDT": "0x16614FCF1b082e021349F7Dc5aFE22d96641e71C",
-      "USDC_USDT": "0x76d4d2BCDc79be85805BbfE7426d59ED374f8dC0",
-      "WBTC_USDC": "0xfD6B4B088f8A73A03AedbB87A4631A317cB97147"
+      "USDC_mUSD": "0xe3EF4228A184882859b7Aa9D17f692310780a614",
+      "USDT_USDC": "0xD5823Fe0bDD5D6eB3c737A2284110f33851346ba",
+      "wOM_mUSD": "0x5651dA3baD93eA523f29CC80e756826A1CF86BC7"
+    },
+    "quickswap": {
+      "USDT_mUSD": "0xf22D49e30794AEe1e74E114332B37dEBd79eE64a",
+      "wOM_USDC": "0x859432C09b6CDeFE376BEdFEDd658fCd23E26d9C"
     }
   },
   "tokens": {
     "WETH": "0x139847104029584df72Bf1805e2720D2c5ae4728",
-    "USDC": "0xDcc8a320dc2Ce505bB37DAb4b47ECE8E3ad1864F",
-    "USDT": "0xCDb248d19195e23a4cdffCa8a67dD8c7f97000D9",
+    "USDC": "0x49b163c575948F0b95e0c459C301995147f27866",
+    "USDT": "0x21E56013a76a7F1F86cF7ee95c0a5670C7b7e44D",
     "WBTC": "0x2A8E20Ba7aB3C3A90527EF0d2d970fd22f7C25AB",
+    "mUSD": "0x4B545d0758eda6601B051259bD977125fbdA7ba2",
+    "wOM": "0x10d26F0491fA11c5853ED7C1f9817b098317DC46",
     "MATIC": "0x0000000000000000000000000000000000000000",
     "DAI": "0x0000000000000000000000000000000000000000"
   },
@@ -53,44 +65,32 @@
   },
   "pairs": [
     {
-      "name": "WETH/USDC",
-      "token0": "WETH",
+      "name": "USDT/USDC",
+      "token0": "USDT",
       "token1": "USDC",
-      "feeTier": 3000
-    },
-    {
-      "name": "WETH/USDT",
-      "token0": "WETH",
-      "token1": "USDT",
       "feeTier": 500
     },
     {
-      "name": "WBTC/WETH",
-      "token0": "WBTC",
-      "token1": "WETH",
-      "feeTier": 3000
-    },
-    {
-      "name": "MATIC/USDC",
-      "token0": "MATIC",
-      "token1": "USDC",
-      "feeTier": 3000
-    },
-    {
-      "name": "USDC/USDT",
+      "name": "USDC/mUSD",
       "token0": "USDC",
-      "token1": "USDT",
+      "token1": "mUSD",
       "feeTier": 500
     },
     {
-      "name": "WBTC/USDC",
-      "token0": "WBTC",
-      "token1": "USDC",
+      "name": "wOM/mUSD",
+      "token0": "wOM",
+      "token1": "mUSD",
+      "feeTier": 3000
+    },
+    {
+      "name": "USDT/mUSD",
+      "token0": "USDT",
+      "token1": "mUSD",
       "feeTier": 500
     },
     {
-      "name": "DAI/USDC",
-      "token0": "DAI",
+      "name": "wOM/USDC",
+      "token0": "wOM",
       "token1": "USDC",
       "feeTier": 500
     }

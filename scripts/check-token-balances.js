@@ -1,7 +1,8 @@
 /**
  * Token Balance Checker
  *
- * Checks the balances of all test tokens (WETH, USDC, USDT, WBTC) and OM
+ * Checks the balances of the tokens required for the current vault tests,
+ * plus OM for gas.
  */
 
 const { ethers } = require("hardhat");
@@ -28,7 +29,7 @@ async function main() {
   console.log(`OM (Gas Token): ${ethers.utils.formatEther(omBalance)} OM\n`);
 
   // Check ERC20 token balances
-  const tokens = ["WETH", "USDC", "USDT", "WBTC"];
+  const tokens = ["USDC", "USDT", "mUSD", "wOM"];
   const balances = {};
 
   for (const tokenSymbol of tokens) {
@@ -74,31 +75,30 @@ async function main() {
   // Check if ready for testing
   console.log("\n=== Readiness Check ===");
   const hasOM = omBalance.gt(ethers.utils.parseEther("0.1"));
-  const hasWETH = balances.WETH && parseFloat(balances.WETH) > 1;
-  const hasUSDC = balances.USDC && parseFloat(balances.USDC) > 1000;
-  const hasUSDT = balances.USDT && parseFloat(balances.USDT) > 1000;
-  const hasWBTC = balances.WBTC && parseFloat(balances.WBTC) > 0.1;
+  const hasUSDC = balances.USDC && parseFloat(balances.USDC) > 100;
+  const hasUSDT = balances.USDT && parseFloat(balances.USDT) > 100;
+  const hasMUSD = balances.mUSD && parseFloat(balances.mUSD) > 100;
+  const hasWOM = balances.wOM && parseFloat(balances.wOM) > 1;
 
   console.log(`OM for gas:  ${hasOM ? '✓' : '✗'} ${hasOM ? 'Ready' : 'Need more OM from faucet'}`);
-  console.log(`WETH:        ${hasWETH ? '✓' : '✗'} ${hasWETH ? 'Ready' : 'Need to mint WETH'}`);
   console.log(`USDC:        ${hasUSDC ? '✓' : '✗'} ${hasUSDC ? 'Ready' : 'Need to mint USDC'}`);
   console.log(`USDT:        ${hasUSDT ? '✓' : '✗'} ${hasUSDT ? 'Ready' : 'Need to mint USDT'}`);
-  console.log(`WBTC:        ${hasWBTC ? '✓' : '✗'} ${hasWBTC ? 'Ready' : 'Need to mint WBTC'}`);
+  console.log(`mUSD:        ${hasMUSD ? '✓' : '✗'} ${hasMUSD ? 'Ready' : 'Need mUSD for *-mUSD pools'}`);
+  console.log(`wOM:         ${hasWOM ? '✓' : '✗'} ${hasWOM ? 'Ready' : 'Need wOM for wOM/* pools'}`);
 
-  const allReady = hasOM && hasWETH && hasUSDC && hasUSDT && hasWBTC;
+  const allReady = hasOM && hasUSDC && hasUSDT && hasMUSD && hasWOM;
 
   if (allReady) {
     console.log("\n✅ All tokens ready! You can start testing.");
     console.log("\nNext steps:");
-    console.log("  node scripts/price-mover.js quickswap WETH/USDC small-up");
-    console.log("  node scripts/batch-price-scenarios.js");
+    console.log("  npx hardhat run scripts/test-vaults.js --network testnet");
   } else {
     console.log("\n⚠️  Some tokens are missing.");
     console.log("\nNext steps:");
     if (!hasOM) {
       console.log("  1. Get OM from faucet: https://faucet.dukong.mantrachain.io");
     }
-    if (!hasWETH || !hasUSDC || !hasUSDT || !hasWBTC) {
+    if (!hasUSDC || !hasUSDT || !hasMUSD) {
       console.log("  2. Mint tokens: npx hardhat run scripts/mint-tokens.js --network testnet");
     }
   }

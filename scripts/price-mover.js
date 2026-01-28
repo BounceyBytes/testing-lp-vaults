@@ -8,9 +8,9 @@
  *   node scripts/price-mover.js <dex> <pair> <scenario> [options]
  *
  * Examples:
- *   node scripts/price-mover.js quickswap WETH/USDC small-up
- *   node scripts/price-mover.js lotus WETH/USDC large-down
- *   node scripts/price-mover.js both WETH/USDC volatility
+ *   node scripts/price-mover.js lotus USDT/USDC small-up
+ *   node scripts/price-mover.js lotus USDC/mUSD large-down
+ *   node scripts/price-mover.js lotus USDT/USDC volatility
  */
 
 const { ethers } = require("hardhat");
@@ -291,7 +291,7 @@ async function main() {
 Usage: node scripts/price-mover.js <dex> <pair> <scenario> [options]
 
 DEX: quickswap | lotus | both
-Pair: WETH/USDC | WETH/USDT | WBTC/WETH | MATIC/USDC | USDC/USDT | DAI/USDC
+Pair: USDT/USDC | USDC/mUSD
 Scenario:
   - small-up: Small upward price move (~2-5%)
   - small-down: Small downward price move (~2-5%)
@@ -304,9 +304,9 @@ Scenario:
   - gradual-down: Gradual downward drift
 
 Examples:
-  node scripts/price-mover.js quickswap WETH/USDC small-up
-  node scripts/price-mover.js lotus WETH/USDC volatility
-  node scripts/price-mover.js both WETH/USDC out-of-range-up
+  node scripts/price-mover.js lotus USDT/USDC small-up
+  node scripts/price-mover.js lotus USDC/mUSD volatility
+  node scripts/price-mover.js lotus USDT/USDC out-of-range-up
     `);
     process.exit(1);
   }

@@ -40,6 +40,14 @@ const VAULT_ABI = [
   "function paused() external view returns (bool)"
 ];
 
+const STRATEGY_ABI = [
+  "function pool() view returns (address)",
+  "function lpToken0() view returns (address)",
+  "function lpToken1() view returns (address)",
+  "function range() view returns (int24, int24)",
+  "function tick() view returns (int24)"
+];
+
 const ERC20_ABI = [
   "function symbol() external view returns (string)",
   "function name() external view returns (string)",
@@ -54,13 +62,14 @@ const POOL_ABI = [
   "function fee() external view returns (uint24)"
 ];
 
-// Vault addresses from user
+// Vault addresses from config
 const VAULTS = [
-  { name: "Vault 1", address: "0xd1ea7f32f9530eac27b314454db4964dbc08cdca" },
-  { name: "Vault 2", address: "0x1e27612d5240d25b70608cdabe1446e67ae7c48f" },
-  { name: "Vault 3", address: "0xacd6e64e56f66e4f010709d54686792ea96b7230" },
-  { name: "Vault 4", address: "0xbbbd57224d28ec578dfe4adc4f50a524804251fe" }
-];
+  { name: "Lotus USDC-mUSD", address: config.vaults.vault_usdc_musd, expectedStrategy: config.strategies?.strategy_usdc_musd },
+  { name: "Lotus USDT-USDC", address: config.vaults.vault_usdt_usdc, expectedStrategy: config.strategies?.strategy_usdt_usdc },
+  { name: "Lotus wOM-mUSD", address: config.vaults.vault_wom_musd, expectedStrategy: config.strategies?.strategy_wom_musd },
+  { name: "QuickSwap USDT-mUSD", address: config.vaults.vault_usdt_musd, expectedStrategy: config.strategies?.strategy_usdt_musd },
+  { name: "QuickSwap wOM-USDC", address: config.vaults.vault_wom_usdc, expectedStrategy: config.strategies?.strategy_wom_usdc }
+].filter(v => v.address && v.address !== "0x0000000000000000000000000000000000000000");
 
 async function getTokenInfo(provider, tokenAddress) {
   try {
@@ -191,6 +200,28 @@ async function checkVault(provider, signer, vault) {
   try {
     const strategy = await vaultContract.strategy();
     console.log(`  Strategy: ${strategy}`);
+    if (vault.expectedStrategy && vault.expectedStrategy.toLowerCase() !== strategy.toLowerCase()) {
+      console.log(`  ⚠️ Strategy mismatch: expected=${vault.expectedStrategy}`);
+    }
+
+    // Enrich with strategy wiring (vaults on this testnet often expose more info via the strategy than the vault itself)
+    try {
+      const strategyContract = new ethers.Contract(strategy, STRATEGY_ABI, provider);
+      const [poolAddr, lp0, lp1] = await Promise.all([
+        strategyContract.pool().catch(() => null),
+        strategyContract.lpToken0().catch(() => null),
+        strategyContract.lpToken1().catch(() => null)
+      ]);
+      if (poolAddr) console.log(`  Strategy.pool(): ${poolAddr}`);
+      if (lp0) {
+        const t0 = await getTokenInfo(provider, lp0);
+        console.log(`  Strategy.lpToken0(): ${t0.symbol} (${lp0})`);
+      }
+      if (lp1) {
+        const t1 = await getTokenInfo(provider, lp1);
+        console.log(`  Strategy.lpToken1(): ${t1.symbol} (${lp1})`);
+      }
+    } catch {}
   } catch {}
   
   try {

@@ -3,40 +3,21 @@
 /**
  * Comprehensive Test Execution Script
  *
- * This script runs the complete LP Vault testing plan automatically,
- * executing all scenarios across both DEXs and generating a detailed report.
+ * This script runs the narrowed LP vault testing plan automatically
+ * (USDC/mUSD + USDT/USDC), generating a detailed report.
  */
 
 const { execSync } = require('child_process');
 const fs = require('fs');
 const path = require('path');
 
-// Test configuration - using only pools that exist on testnet
-// QuickSwap pools: USDC/USDT
-// Lotus pools: WETH/USDT, USDC/USDT, WBTC/USDC
-const TEST_CONFIG = {
-  dexes: ['quickswap', 'lotus'],
-  // Pair availability by DEX:
-  // - USDC/USDT: both
-  // - WETH/USDT: lotus only
-  // - WBTC/USDC: lotus only
-  pairsByDex: {
-    quickswap: ['USDC/USDT'],
-    lotus: ['WETH/USDT', 'USDC/USDT', 'WBTC/USDC']
-  },
-  pairs: ['USDC/USDT', 'WETH/USDT', 'WBTC/USDC'],
-  scenarios: [
-    'small-up',
-    'small-down',
-    'large-up',
-    'large-down',
-    'volatility',
-    'out-of-range-up',
-    'out-of-range-down',
-    'gradual-up',
-    'gradual-down'
-  ]
-};
+const TEST_COMMANDS = [
+  {
+    name: 'clm-vault-tests',
+    description: 'CLM vault tests (USDC/mUSD + USDT/USDC)',
+    command: 'npx hardhat run scripts/test-vaults.js --network testnet'
+  }
+];
 
 // Results tracking
 const results = {
@@ -135,29 +116,15 @@ function generateMarkdownReport() {
 
   report += `## Test Results\n\n`;
 
-  // Group by DEX
-  const testsByDex = {};
+  report += `| Test | Status | Duration | Notes |\n`;
+  report += `|------|--------|----------|-------|\n`;
   tests.forEach(test => {
-    if (!testsByDex[test.dex]) {
-      testsByDex[test.dex] = [];
-    }
-    testsByDex[test.dex].push(test);
+    const status = test.success ? '✅' : '❌';
+    const duration = `${(test.duration / 1000).toFixed(2)}s`;
+    const notes = test.error ? test.error.substring(0, 80) : 'Success';
+    report += `| ${test.name} | ${status} | ${duration} | ${notes} |\n`;
   });
-
-  for (const [dex, dexTests] of Object.entries(testsByDex)) {
-    report += `### ${dex.toUpperCase()}\n\n`;
-    report += `| Pair | Scenario | Status | Duration | Notes |\n`;
-    report += `|------|----------|--------|----------|-------|\n`;
-
-    dexTests.forEach(test => {
-      const status = test.success ? '✅' : '❌';
-      const duration = `${(test.duration / 1000).toFixed(2)}s`;
-      const notes = test.error ? test.error.substring(0, 50) : 'Success';
-      report += `| ${test.pair} | ${test.scenario} | ${status} | ${duration} | ${notes} |\n`;
-    });
-
-    report += `\n`;
-  }
+  report += `\n`;
 
   // Failed tests details
   const failedTests = tests.filter(t => !t.success);
@@ -165,7 +132,7 @@ function generateMarkdownReport() {
     report += `## Failed Tests Details\n\n`;
 
     failedTests.forEach((test, index) => {
-      report += `### ${index + 1}. ${test.dex} - ${test.pair} - ${test.scenario}\n\n`;
+      report += `### ${index + 1}. ${test.name}\n\n`;
       report += `**Error**: ${test.error}\n\n`;
       if (test.output) {
         report += `**Output**:\n\`\`\`\n${test.output.substring(0, 500)}\n\`\`\`\n\n`;
@@ -195,109 +162,34 @@ async function runTests() {
   if (!balanceCheck.success) {
     console.error('\n❌ Balance check failed! Please ensure:');
     console.error('  1. You have OM tokens for gas');
-    console.error('  2. You have test tokens (WETH, USDC, USDT, WBTC)');
+    console.error('  2. You have test tokens (USDC, USDT, mUSD)');
     console.error('  3. RPC connection is working');
     process.exit(1);
   }
 
-  // Step 2: Run tests for each DEX, pair, and scenario
-  console.log('\n🧪 STEP 2: Running Price Movement Tests\n');
-
-  for (const dex of TEST_CONFIG.dexes) {
-    console.log(`\n${'━'.repeat(80)}`);
-    console.log(`🔄 Testing ${dex.toUpperCase()}`);
-    console.log(`${'━'.repeat(80)}\n`);
-
-    // Get pairs available for this DEX
-    const availablePairs = TEST_CONFIG.pairsByDex[dex] || TEST_CONFIG.pairs;
-    
-    for (const pair of availablePairs) {
-      // Skip pairs with placeholder addresses
-      if (pair.includes('MATIC') || pair.includes('DAI')) {
-        console.log(`⏭️  Skipping ${pair} (not configured)\n`);
-        continue;
-      }
-
-      console.log(`\n  📈 Testing pair: ${pair}\n`);
-
-      for (const scenario of TEST_CONFIG.scenarios) {
-        const testName = `${dex}-${pair}-${scenario}`;
-        const command = `HARDHAT_NETWORK=testnet node scripts/price-mover.js ${dex} ${pair} ${scenario}`;
-
-        results.summary.total++;
-
-        const result = runCommand(
-          command,
-          `${dex.toUpperCase()} | ${pair} | ${scenario}`
-        );
-
-        const testResult = {
-          dex,
-          pair,
-          scenario,
-          success: result.success,
-          duration: result.duration,
-          output: result.output,
-          error: result.error,
-          timestamp: new Date().toISOString()
-        };
-
-        results.tests.push(testResult);
-
-        if (result.success) {
-          results.summary.passed++;
-        } else {
-          results.summary.failed++;
-        }
-
-        // Small delay between tests
-        await new Promise(resolve => setTimeout(resolve, 2000));
-      }
-    }
-  }
-
-  // Step 3: Test both DEXs simultaneously
-  console.log('\n🔀 STEP 3: Testing Both DEXs Simultaneously\n');
-
-  const simultaneousTests = [
-    { pair: 'WETH/USDC', scenario: 'small-up' },
-    { pair: 'WETH/USDC', scenario: 'volatility' },
-    { pair: 'WETH/USDC', scenario: 'out-of-range-up' }
-  ];
-
-  for (const test of simultaneousTests) {
+  // Step 2: Run narrowed vault tests
+  console.log('\n🧪 STEP 2: Running CLM Vault Tests\n');
+  for (const t of TEST_COMMANDS) {
     results.summary.total++;
-
-    const result = runCommand(
-      `HARDHAT_NETWORK=testnet node scripts/price-mover.js both ${test.pair} ${test.scenario}`,
-      `BOTH DEXs | ${test.pair} | ${test.scenario}`
-    );
-
+    const result = runCommand(t.command, t.description);
     results.tests.push({
-      dex: 'both',
-      pair: test.pair,
-      scenario: test.scenario,
+      name: t.name,
       success: result.success,
       duration: result.duration,
       output: result.output,
       error: result.error,
       timestamp: new Date().toISOString()
     });
-
-    if (result.success) {
-      results.summary.passed++;
-    } else {
-      results.summary.failed++;
-    }
-
-    await new Promise(resolve => setTimeout(resolve, 2000));
+    if (result.success) results.summary.passed++;
+    else results.summary.failed++;
+    await new Promise(resolve => setTimeout(resolve, 1000));
   }
 
   // Finalize results
   results.endTime = new Date().toISOString();
 
-  // Step 4: Generate report
-  console.log('\n📊 STEP 4: Generating Test Report\n');
+  // Step 3: Generate report
+  console.log('\n📊 STEP 3: Generating Test Report\n');
   saveResults();
 
   // Print summary

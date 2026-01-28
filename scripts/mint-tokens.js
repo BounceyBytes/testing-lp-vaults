@@ -1,7 +1,7 @@
 /**
  * Token Minting Script for LP Vault Testing
  *
- * This script mints test tokens (WETH, USDC, USDT, WBTC) to the test wallet
+ * This script mints test tokens (USDC, USDT, mUSD) and acquires wOM (wrapped OM / wMANTRA)
  * for use in LP vault testing on Mantra Dukong testnet.
  */
 
@@ -25,12 +25,17 @@ const ALTERNATIVE_MINT_ABI = [
   "function getMeTokens(uint256 amount) external"
 ];
 
+const WRAPPED_NATIVE_ABI = [
+  "function deposit() payable",
+  "function withdraw(uint256) external"
+];
+
 // Mint amounts (adjust as needed)
 const MINT_AMOUNTS = {
-  WETH: ethers.utils.parseEther("100"),        // 100 WETH
   USDC: ethers.utils.parseUnits("100000", 6),  // 100,000 USDC (6 decimals)
   USDT: ethers.utils.parseUnits("100000", 6),  // 100,000 USDT (6 decimals)
-  WBTC: ethers.utils.parseUnits("10", 8)       // 10 WBTC (8 decimals)
+  mUSD: ethers.utils.parseUnits("100000", 6),  // 100,000 mUSD (mmUSD, 6 decimals on this testnet)
+  wOM: ethers.utils.parseEther("5")            // wrap 5 OM into wOM (wMANTRA, 18 decimals)
 };
 
 async function main() {
@@ -56,7 +61,7 @@ async function main() {
   console.log("✓ Sufficient OM for gas\n");
 
   // Tokens to mint
-  const tokens = ["WETH", "USDC", "USDT", "WBTC"];
+  const tokens = ["USDC", "USDT", "mUSD", "wOM"];
 
   for (const tokenSymbol of tokens) {
     const tokenAddress = config.tokens[tokenSymbol];
@@ -70,6 +75,48 @@ async function main() {
     console.log(`Token Address: ${tokenAddress}`);
 
     try {
+      // Wrapped native handling (wOM / wMANTRA)
+      if (tokenSymbol === "wOM") {
+        const wrapped = new ethers.Contract(tokenAddress, WRAPPED_NATIVE_ABI.concat(MINTABLE_TOKEN_ABI), signer);
+        const [name, symbol, decimals] = await Promise.all([
+          wrapped.name().catch(() => "Wrapped Native"),
+          wrapped.symbol().catch(() => "wOM"),
+          wrapped.decimals().catch(() => 18)
+        ]);
+        console.log(`Token Name: ${name}`);
+        console.log(`Symbol: ${symbol}`);
+        console.log(`Decimals: ${decimals}`);
+
+        const balanceBefore = await wrapped.balanceOf(address);
+        console.log(`Balance Before: ${ethers.utils.formatUnits(balanceBefore, decimals)} ${symbol}`);
+
+        const wrapAmount = MINT_AMOUNTS.wOM;
+        const omBal = await signer.getBalance();
+        if (omBal.lt(wrapAmount.add(ethers.utils.parseEther("0.05")))) {
+          throw new Error(`Insufficient OM to wrap. Have ${ethers.utils.formatEther(omBal)} OM, need ~${ethers.utils.formatEther(wrapAmount)} + gas`);
+        }
+
+        console.log(`Wrapping: ${ethers.utils.formatEther(wrapAmount)} OM → ${symbol}...`);
+        try {
+          const tx = await wrapped.deposit({ value: wrapAmount, gasLimit: 200000 });
+          console.log(`Transaction sent: ${tx.hash}`);
+          const receipt = await tx.wait();
+          console.log(`✓ Transaction confirmed in block ${receipt.blockNumber}`);
+        } catch (e) {
+          // Some mock wrapped tokens are mintable instead of deposit-based
+          console.log(`deposit() failed, trying mint()...`);
+          const tx = await wrapped.mint(address, wrapAmount);
+          console.log(`Transaction sent: ${tx.hash}`);
+          const receipt = await tx.wait();
+          console.log(`✓ Transaction confirmed in block ${receipt.blockNumber}`);
+        }
+
+        const balanceAfter = await wrapped.balanceOf(address);
+        console.log(`Balance After: ${ethers.utils.formatUnits(balanceAfter, decimals)} ${symbol}`);
+        console.log(`✓ Successfully acquired ${symbol}!\n`);
+        continue;
+      }
+
       // Create contract instance
       const token = new ethers.Contract(tokenAddress, MINTABLE_TOKEN_ABI, signer);
 
@@ -136,7 +183,7 @@ async function main() {
   console.log("\n✅ Minting process completed!");
   console.log("\nNext steps:");
   console.log("1. Verify balances: npx hardhat run scripts/check-token-balances.js --network testnet");
-  console.log("2. Start testing: node scripts/price-mover.js quickswap WETH/USDC small-up");
+  console.log("2. Start testing: npx hardhat run scripts/test-vaults.js --network testnet");
 }
 
 main()

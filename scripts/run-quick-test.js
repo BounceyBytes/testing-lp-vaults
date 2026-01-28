@@ -3,8 +3,7 @@
 /**
  * Quick Test Script
  *
- * Runs a subset of essential tests for fast validation
- * Use this for quick smoke testing before running the full suite
+ * Runs the narrowed vault test suite (USDC/mUSD + USDT/USDC) for fast validation.
  */
 
 const { execSync } = require('child_process');
@@ -12,16 +11,10 @@ const fs = require('fs');
 const path = require('path');
 
 const QUICK_TESTS = [
-  // QuickSwap - only USDC/USDT pool exists
-  { dex: 'quickswap', pair: 'USDC/USDT', scenario: 'small-up', description: 'QuickSwap USDC/USDT small upward move' },
-  { dex: 'quickswap', pair: 'USDC/USDT', scenario: 'small-down', description: 'QuickSwap USDC/USDT small downward move' },
-  { dex: 'quickswap', pair: 'USDC/USDT', scenario: 'out-of-range-up', description: 'QuickSwap USDC/USDT rebalance test' },
-  // Lotus - WETH/USDT, USDC/USDT, WBTC/USDC pools exist
-  { dex: 'lotus', pair: 'WETH/USDT', scenario: 'small-up', description: 'Lotus WETH/USDT small upward move' },
-  { dex: 'lotus', pair: 'WETH/USDT', scenario: 'small-down', description: 'Lotus WETH/USDT small downward move' },
-  { dex: 'lotus', pair: 'WETH/USDT', scenario: 'out-of-range-up', description: 'Lotus WETH/USDT rebalance test' },
-  { dex: 'lotus', pair: 'USDC/USDT', scenario: 'small-up', description: 'Lotus USDC/USDT small upward move' },
-  { dex: 'lotus', pair: 'WBTC/USDC', scenario: 'small-up', description: 'Lotus WBTC/USDC small upward move' }
+  {
+    description: 'CLM vault tests (USDC/mUSD + USDT/USDC)',
+    command: 'npx hardhat run scripts/test-vaults.js --network testnet'
+  }
 ];
 
 const results = {
@@ -34,14 +27,13 @@ const results = {
 function runTest(test) {
   console.log(`\n${'='.repeat(80)}`);
   console.log(`🧪 ${test.description}`);
-  console.log(`   DEX: ${test.dex} | Pair: ${test.pair} | Scenario: ${test.scenario}`);
+  console.log(`   Command: ${test.command}`);
   console.log(`${'='.repeat(80)}\n`);
 
-  const command = `HARDHAT_NETWORK=testnet node scripts/price-mover.js ${test.dex} ${test.pair} ${test.scenario}`;
   const startTime = Date.now();
 
   try {
-    const output = execSync(command, {
+    const output = execSync(test.command, {
       encoding: 'utf8',
       stdio: 'pipe',
       maxBuffer: 10 * 1024 * 1024
@@ -51,7 +43,7 @@ function runTest(test) {
     console.log(output);
     console.log(`\n✅ Test passed! Duration: ${(duration / 1000).toFixed(2)}s\n`);
 
-    results.tests.push({ ...test, success: true, duration, error: null });
+    results.tests.push({ description: test.description, command: test.command, success: true, duration, error: null });
     results.passed++;
     return true;
   } catch (error) {
@@ -59,7 +51,7 @@ function runTest(test) {
     console.error(`\n❌ Test failed! Duration: ${(duration / 1000).toFixed(2)}s`);
     console.error(`Error: ${error.message}\n`);
 
-    results.tests.push({ ...test, success: false, duration, error: error.message });
+    results.tests.push({ description: test.description, command: test.command, success: false, duration, error: error.message });
     results.failed++;
     return false;
   }
@@ -69,7 +61,7 @@ async function runQuickTests() {
   console.log(`
 ╔═══════════════════════════════════════════════════════════════════════════╗
 ║                    LP VAULT QUICK TEST SUITE                              ║
-║                    Running ${QUICK_TESTS.length} Essential Tests                                ║
+║                    Running ${QUICK_TESTS.length} Essential Test(s)                              ║
 ╚═══════════════════════════════════════════════════════════════════════════╝
   `);
 
