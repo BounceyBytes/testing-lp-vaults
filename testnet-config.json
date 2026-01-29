@@ -22,7 +22,9 @@
     "positionManager": "0x69D57B9D705eaD73a5d2f2476C30c55bD755cc2F",
     "router": "0x3012E9049d05B4B5369D690114D5A5861EbB85cb",
     "quoterV2": "0xa77aD9f635a3FB3bCCC5E6d1A87cB269746Aba17",
-    "quoter": "0x03f8B4b140249Dc7B2503C928E7258CCe1d91F1A"
+    "quoter": "0x03f8B4b140249Dc7B2503C928E7258CCe1d91F1A",
+    "directPoolSwapper": "0x583E2f2c206c8A730eDbD15edf562AD34A684130",
+    "_note_directPoolSwapper": "Custom contract that bypasses the router's broken pool address computation. Deployed because the testnet Algebra router has a mismatched POOL_INIT_CODE_HASH."
   },
   "lotus": {
     "factory": "0x17E1ebf15BE528b179d34148fB9aB2466555F605",

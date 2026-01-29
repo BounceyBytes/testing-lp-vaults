@@ -10,9 +10,14 @@
     "price-move": "node scripts/price-mover.js",
     "batch-test": "node scripts/batch-price-scenarios.js",
     "quick-test": "node scripts/run-quick-test.js",
-    "full-test": "node scripts/run-full-test-suite.js",
+    "full-test": "HARDHAT_NETWORK=testnet hardhat test test/harness/00-preflight.test.js test/harness/10-user-journey.test.js",
+    "full-test:local": "hardhat test test/harness/00-preflight.test.js test/harness/10-user-journey.test.js",
+    "full-test:legacy": "node scripts/run-full-test-suite.js",
     "test-vaults": "npx hardhat run scripts/test-vaults.js --network testnet",
-    "test": "hardhat test",
+    "test": "HARDHAT_NETWORK=testnet hardhat test",
+    "test:local": "hardhat test",
+    "test:testnet": "HARDHAT_NETWORK=testnet hardhat test",
+    "full-test:testnet": "HARDHAT_NETWORK=testnet hardhat test test/harness/00-preflight.test.js test/harness/10-user-journey.test.js",
     "compile": "hardhat compile"
   },
   "keywords": [
@@ -34,6 +39,7 @@
     "node": ">=16.0.0"
   },
   "dependencies": {
+    "@openzeppelin/contracts": "^5.4.0",
     "dotenv": "^17.2.3"
   }
 }

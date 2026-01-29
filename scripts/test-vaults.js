@@ -49,6 +49,23 @@ const VAULT_CONFIGS = [
     token0Symbol: "USDC",
     token1Symbol: "mUSD",
     feeTier: 500
+  }
+];
+
+// Original configs commented out
+/*
+const VAULT_CONFIGS_ALL = [
+  {
+    name: "Lotus USDC-mUSD",
+    vault: config.vaults.vault_usdc_musd,
+    expectedStrategy: config.strategies?.strategy_usdc_musd,
+    dex: "lotus",
+    pool: config.pools.lotus.USDC_mUSD,
+    token0: config.tokens.USDC,
+    token1: config.tokens.mUSD,
+    token0Symbol: "USDC",
+    token1Symbol: "mUSD",
+    feeTier: 500
   },
   {
     name: "Lotus USDT-USDC",
@@ -99,6 +116,7 @@ const VAULT_CONFIGS = [
     feeTier: 500
   }
 ];
+*/
 
 // Extended Vault ABI for CLM metrics
 const VAULT_ABI = [
@@ -277,6 +295,8 @@ class VaultTester {
       strategy: null
     };
     
+    let lastTickErr = null;
+    
     try {
       state.totalSupply = await vault.totalSupply();
       // Some vaults don't expose `strategy()` (or ABI mismatch). Fall back to config if provided.
@@ -436,13 +456,14 @@ class VaultTester {
         });
       }
       
-      const { tickLower, tickUpper } = state.position;
+      // Recalculate range status in case ticks were found in fallback
+      const { tickLower: finalTickLower, tickUpper: finalTickUpper } = state.position;
       const ct = state.poolState.currentTick;
-      if (ct !== null && tickLower !== null && tickUpper !== null) {
-        state.rangeStatus.isInRange = ct >= tickLower && ct < tickUpper;
-        state.rangeStatus.singleSidedExposure = ct >= tickUpper ? "token1_only" : (ct < tickLower ? "token0_only" : "both");
-        state.rangeStatus.distanceToLowerTick = ct - tickLower; state.rangeStatus.distanceToUpperTick = tickUpper - ct;
-        state.rangeStatus.percentInRange = state.rangeStatus.isInRange ? ((ct - tickLower) / (tickUpper - tickLower)) * 100 : (ct < tickLower ? 0 : 100);
+      if (ct !== null && finalTickLower !== null && finalTickUpper !== null) {
+        state.rangeStatus.isInRange = ct >= finalTickLower && ct < finalTickUpper;
+        state.rangeStatus.singleSidedExposure = ct >= finalTickUpper ? "token1_only" : (ct < finalTickLower ? "token0_only" : "both");
+        state.rangeStatus.distanceToLowerTick = ct - finalTickLower; state.rangeStatus.distanceToUpperTick = finalTickUpper - ct;
+        state.rangeStatus.percentInRange = state.rangeStatus.isInRange ? ((ct - finalTickLower) / (finalTickUpper - finalTickLower)) * 100 : (ct < finalTickLower ? 0 : 100);
       }
       
       state.fees.feeGrowthActive = state.rangeStatus.isInRange;
@@ -462,8 +483,13 @@ class VaultTester {
       }
       
       try {
-        state.shareAccounting.pricePerShare = await vault.getPricePerFullShare();
-        state.shareAccounting.pricePerShareFormatted = ethers.utils.formatEther(state.shareAccounting.pricePerShare);
+        const sharePriceData = await getSharePrice(vault);
+        if (sharePriceData && sharePriceData.raw) {
+          state.shareAccounting.pricePerShare = sharePriceData.raw;
+          state.shareAccounting.pricePerShareFormatted = sharePriceData.formatted;
+        } else {
+           throw new Error("PPFS unavailable");
+        }
       } catch {
         if (state.totalSupply && state.shareAccounting.tvl) {
           const supply = Number(ethers.utils.formatEther(state.totalSupply));
@@ -560,12 +586,16 @@ class VaultTester {
     
     // Share accounting
     lines.push(`    📈 Share Accounting:`);
-    if (before.shareAccounting.pricePerShare && after.shareAccounting.pricePerShare) {
-      const ppfsBefore = Number(ethers.utils.formatEther(before.shareAccounting.pricePerShare));
-      const ppfsAfter = Number(ethers.utils.formatEther(after.shareAccounting.pricePerShare));
+    if (before.shareAccounting.pricePerShareFormatted && after.shareAccounting.pricePerShareFormatted) {
+      const ppfsBefore = parseFloat(before.shareAccounting.pricePerShareFormatted);
+      const ppfsAfter = parseFloat(after.shareAccounting.pricePerShareFormatted);
       const ppfsDelta = ppfsAfter - ppfsBefore;
       const ppfsPctChange = ((ppfsDelta / ppfsBefore) * 100);
       lines.push(`      PPFS: ${ppfsBefore.toFixed(8)} → ${ppfsAfter.toFixed(8)} (${ppfsPctChange >= 0 ? '+' : ''}${ppfsPctChange.toFixed(6)}%)`);
+      
+      if (ppfsAfter < ppfsBefore) {
+        lines.push(`      ⚠️ WARNING: PPFS Decreased! (${ppfsDelta.toFixed(8)}) Check for share dilution or accounting error.`);
+      }
     }
     
     if (before.shareAccounting.tvl !== null && after.shareAccounting.tvl !== null) {
@@ -890,7 +920,8 @@ class VaultTester {
 async function main() {
   const [signer] = await ethers.getSigners();
   const tester = new VaultTester(signer);
-  const scenarios = ["small-up", "small-down", "large-up", "large-down"];
+  // Fail fast: run the most extreme moves first.
+  const scenarios = ["large-up", "large-down", "small-up", "small-down"];
   for (const vc of VAULT_CONFIGS) await tester.testVault(vc, scenarios);
   console.log(`\nSUMMARY: Total=${tester.results.summary.total}, Passed=${tester.results.summary.passed}, Failed=${tester.results.summary.failed}`);
   tester.saveResults();

@@ -27,11 +27,11 @@ npm run check-tokens
 ### Run Tests
 
 ```bash
-# Quick test (6 essential tests, ~5-10 minutes)
-npm run quick-test
+# Run the Mocha/Hardhat test suite (local hardhat network)
+npm test
 
-# Full test suite (all scenarios, ~30-60 minutes)
-npm run full-test
+# Run the harness tests against Dukong testnet
+npm run full-test:testnet
 
 # Single test
 npm run price-move -- quickswap WETH/USDC small-up
@@ -74,21 +74,15 @@ npm run quick-test
 Runs all scenarios across both DEXs:
 
 ```bash
-npm run full-test
+npm run full-test:testnet
 ```
 
-**Tests Included:**
-- Both DEXs (QuickSwap & Lotus)
-- Multiple pairs (WETH/USDC, WETH/USDT, WBTC/WETH, USDC/USDT)
-- All 9 scenarios per pair:
-  - small-up / small-down
-  - large-up / large-down
-  - volatility
-  - out-of-range-up / out-of-range-down
-  - gradual-up / gradual-down
-- Simultaneous DEX testing
+**Tests Included (Harness):**
+- Preflight checks (chainId, gas)
+- Vault deposit/withdraw operations across configured vaults
+- CLM vault swap scenarios (tick move + optional rebalance) across config-driven vault list
 
-**Total Tests:** 60+
+**Total Tests:** varies with configured vaults/scenarios
 
 **Duration:** ~30-60 minutes
 

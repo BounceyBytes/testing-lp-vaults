@@ -13,16 +13,8 @@ const { ethers } = require("hardhat");
 const { PriceMover } = require("./price-mover");
 const config = require("../testnet-config.json");
 
+// Fail fast: run the most extreme movement tests first.
 const scenarios = [
-  {
-    name: "Initial Small Moves (Lotus)",
-    tests: [
-      { dex: "lotus", pair: "USDT/USDC", action: "small-up" },
-      { dex: "lotus", pair: "USDT/USDC", action: "small-down" },
-      { dex: "lotus", pair: "USDC/mUSD", action: "small-up" },
-      { dex: "lotus", pair: "USDC/mUSD", action: "small-down" }
-    ]
-  },
   {
     name: "Rebalance Testing (Lotus)",
     tests: [
@@ -37,6 +29,15 @@ const scenarios = [
     tests: [
       { dex: "lotus", pair: "USDT/USDC", action: "volatility" },
       { dex: "lotus", pair: "USDC/mUSD", action: "volatility" }
+    ]
+  },
+  {
+    name: "Initial Small Moves (Lotus)",
+    tests: [
+      { dex: "lotus", pair: "USDT/USDC", action: "small-up" },
+      { dex: "lotus", pair: "USDT/USDC", action: "small-down" },
+      { dex: "lotus", pair: "USDC/mUSD", action: "small-up" },
+      { dex: "lotus", pair: "USDC/mUSD", action: "small-down" }
     ]
   }
 ];

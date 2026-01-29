@@ -1,0 +1,37 @@
+{
+  "name": "lotus-testnet-bot",
+  "version": "1.0.0",
+  "description": "Trading bot for testing CLM vault rebalancing on Lotus DEX (Mantra Testnet)",
+  "main": "dist/index.js",
+  "scripts": {
+    "build": "tsc",
+    "start": "node dist/index.js",
+    "dev": "ts-node src/index.ts",
+    "move-price": "ts-node src/examples/move-price.ts",
+    "test": "jest",
+    "lint": "eslint src --ext .ts"
+  },
+  "keywords": [
+    "lotus",
+    "uniswap-v3",
+    "trading-bot",
+    "defi",
+    "mantrachain",
+    "testnet"
+  ],
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "ethers": "^6.9.0",
+    "dotenv": "^16.3.1",
+    "winston": "^3.11.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20.10.6",
+    "typescript": "^5.3.3",
+    "ts-node": "^10.9.2",
+    "@typescript-eslint/eslint-plugin": "^6.17.0",
+    "@typescript-eslint/parser": "^6.17.0",
+    "eslint": "^8.56.0"
+  }
+}
